@@ -4,7 +4,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // Importa el cliente de Supabase desde esm.sh
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serveWithCors } from "../_shared/server.ts";
-import { convertToCamelCase, convertToSnakeCase } from "../_shared/utils.ts";
+import { convertToSnakeCase } from "../_shared/utils.ts"; // Solo mantenemos este por si acaso
 
 // Obtén las variables de entorno necesarias para la conexión
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -28,7 +28,7 @@ async function handleGetUsers(req: Request): Promise<Response> {
   const { data, error } = await supabase
     .from("user")
     .select("*, person(*), role(*)")
-    .eq("active", 1); // Solo usuarios activos, si aplica
+    .eq("active", true);
 
   if (error) {
     return new Response(
@@ -37,11 +37,8 @@ async function handleGetUsers(req: Request): Promise<Response> {
     );
   }
 
-  // Convertir a camelCase antes de enviar la respuesta
-  const camelCaseData = convertToCamelCase(data);
-
   return new Response(
-    JSON.stringify(camelCaseData),
+    JSON.stringify(data),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
@@ -57,7 +54,7 @@ async function handleGetUserById(req: Request): Promise<Response> {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "Falta el parámetro 'id' en la URL" }),
+        JSON.stringify({ error: "Missing 'id' parameter in URL" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
@@ -66,29 +63,26 @@ async function handleGetUserById(req: Request): Promise<Response> {
       .from("user")
       .select("*, person(*), role(*)")
       .eq("id", id)
-      .eq("active", 1) // Solo usuarios activos, si aplica
+      .eq("active", true)
       .single();
 
     if (error) {
       return new Response(
         JSON.stringify({ error: error.message }),
         { 
-          status: error.code === "PGRST116" ? 404 : 500, // 404 si no existe
+          status: error.code === "PGRST116" ? 404 : 500,
           headers: { "Content-Type": "application/json" } 
         }
       );
     }
 
-    // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseData = convertToCamelCase(data);
-
     return new Response(
-      JSON.stringify(camelCaseData),
+      JSON.stringify(data),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Error al procesar la solicitud" }),
+      JSON.stringify({ error: "Error processing request" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -96,13 +90,12 @@ async function handleGetUserById(req: Request): Promise<Response> {
 
 /**
  * POST /users
- * Crea un nuevo usuario tanto en el sistema de autenticación como en la tabla "user",
- * incluyendo datos de "person" y "roleId".
+ * Crea un nuevo usuario en la tabla "user" usando el stored procedure.
+ * El ID del usuario viene desde el frontend.
  * 
  * Payload esperado:
  * {
- *   "email": "usuario@ejemplo.com",
- *   "password": "tuPasswordSegura",
+ *   "id": "2ce2e19e-39cb-4ab2-98ef-83d6fbf2fa59",
  *   "person": {
  *     "name": "Juan",
  *     "lastName": "Pérez",
@@ -112,7 +105,7 @@ async function handleGetUserById(req: Request): Promise<Response> {
  *     "address": "Calle Falsa 123"
  *   },
  *   "roleId": 1,
- *   "active": 1  // Opcional, por defecto 1
+ *   "active": 1
  * }
  */
 async function handlePostUser(req: Request): Promise<Response> {
@@ -120,54 +113,41 @@ async function handlePostUser(req: Request): Promise<Response> {
     const contentType = req.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
       return new Response(
-        JSON.stringify({ error: "El Content-Type debe ser application/json" }),
+        JSON.stringify({ error: "Content-Type must be application/json" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Convertir el cuerpo de la solicitud de camelCase a snake_case
-    const camelCaseBody = await req.json();
-    const body = convertToSnakeCase(camelCaseBody);
+    const body = await req.json();
     
-    const { email, password, person, role_id, active } = body;
+    const { id, person, roleId, active } = body;
 
-    if (!email || !password || !person || !role_id) {
+    if (!id || !person || !roleId) {
       return new Response(
-        JSON.stringify({ error: "Faltan campos obligatorios: email, password, person o roleId" }),
+        JSON.stringify({ error: "Missing required fields: id, person or roleId" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Crear usuario en Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-    });
-
-    if (authError) {
-      return new Response(
-        JSON.stringify({ error: authError.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const newUserId = authData.user?.id;
-    if (!newUserId) {
-      return new Response(
-        JSON.stringify({ error: "No se pudo obtener el ID del usuario creado en Auth" }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Insertar datos de person y user en una transacción
-    const { data, error } = await supabase.rpc("create_user_with_person", {
-      user_data: {
-        id: newUserId,
-        roleId: role_id,
-        active: active ?? 1,
-        person,
+    // Usar el stored procedure con el formato correcto
+    const userData = {
+      id,
+      person: {
+        name: person.name,
+        lastName: person.lastName,
+        birthDate: person.birthDate,
+        email: person.email,
+        phoneNumber: person.phoneNumber,
+        address: person.address
       },
+      roleId,
+      active: active ?? 1
+    };
+
+    const snakeCaseUser = convertToSnakeCase(userData);
+
+    const { data, error } = await supabase.rpc("create_user_with_person", {
+      user_data: snakeCaseUser
     });
 
     if (error) {
@@ -177,30 +157,13 @@ async function handlePostUser(req: Request): Promise<Response> {
       );
     }
 
-    // Obtener el usuario completo con person y role
-    const { data: userData, error: fetchError } = await supabase
-      .from("user")
-      .select("*, person(*), role(*)")
-      .eq("id", newUserId)
-      .single();
-
-    if (fetchError) {
-      return new Response(
-        JSON.stringify({ error: fetchError.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseUserData = convertToCamelCase(userData);
-
     return new Response(
-      JSON.stringify(camelCaseUserData),
+      JSON.stringify(data),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Payload JSON inválido o error inesperado" }),
+      JSON.stringify({ error: "Invalid JSON payload or unexpected error" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -231,23 +194,41 @@ async function handlePutUser(req: Request): Promise<Response> {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "Falta el parámetro 'id' en la URL" }),
+        JSON.stringify({ error: "Missing 'id' parameter in URL" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Convertir el cuerpo de la solicitud de camelCase a snake_case
-    const camelCaseBody = await req.json();
-    const body = convertToSnakeCase(camelCaseBody);
-    
-    const { person, role_id, active } = body;
+    const body = await req.json();
+    const { person, roleId, active } = body;
+
+    // Obtener el person_id del usuario
+    const { data: userData, error: fetchError } = await supabase
+      .from("user")
+      .select("personId")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) {
+      return new Response(
+        JSON.stringify({ error: fetchError.message }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
     // Actualizar person si se proporciona
     if (person) {
       const { error: personError } = await supabase
         .from("person")
-        .update(person)
-        .eq("id", (await supabase.from("user").select("person_id").eq("id", id).single()).data.person_id);
+        .update({
+          name: person.name,
+          lastName: person.lastName,
+          birthDate: person.birthDate,
+          email: person.email,
+          phoneNumber: person.phoneNumber,
+          address: person.address
+        })
+        .eq("id", userData.personId);
 
       if (personError) {
         return new Response(
@@ -258,11 +239,16 @@ async function handlePutUser(req: Request): Promise<Response> {
     }
 
     // Actualizar user
+    const updateData: { roleId?: number; active?: number } = {};
+    if (roleId !== undefined) updateData.roleId = roleId;
+    if (active !== undefined) updateData.active = active;
+
     const { data, error } = await supabase
       .from("user")
-      .update({ role_id, active })
+      .update(updateData)
       .eq("id", id)
-      .select("*, person(*), role(*)");
+      .select("*, person(*), role(*)")
+      .single();
 
     if (error) {
       return new Response(
@@ -271,16 +257,13 @@ async function handlePutUser(req: Request): Promise<Response> {
       );
     }
 
-    // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseData = convertToCamelCase(data);
-
     return new Response(
-      JSON.stringify(camelCaseData),
+      JSON.stringify(data),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Payload JSON inválido" }),
+      JSON.stringify({ error: "Invalid JSON payload" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -297,12 +280,11 @@ async function handleDeleteUser(req: Request): Promise<Response> {
 
     if (!id) {
       return new Response(
-        JSON.stringify({ error: "Falta el parámetro 'id' en la URL" }),
+        JSON.stringify({ error: "Missing 'id' parameter in URL" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Obtener el usuario antes de desactivar
     const { data: userData, error: fetchError } = await supabase
       .from("user")
       .select("*, person(*), role(*)")
@@ -316,7 +298,6 @@ async function handleDeleteUser(req: Request): Promise<Response> {
       );
     }
 
-    // Desactivar el usuario
     const { error: updateError } = await supabase
       .from("user")
       .update({ active: 0 })
@@ -329,16 +310,13 @@ async function handleDeleteUser(req: Request): Promise<Response> {
       );
     }
 
-    // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseUserData = convertToCamelCase(userData);
-
     return new Response(
-      JSON.stringify(camelCaseUserData),
+      JSON.stringify(userData),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Error al procesar la solicitud" }),
+      JSON.stringify({ error: "Error processing request" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -361,7 +339,7 @@ serveWithCors(async (req: Request) => {
       return await handleDeleteUser(req);
     default:
       return new Response(
-        JSON.stringify({ error: "Método no permitido" }),
+        JSON.stringify({ error: "Method not allowed" }),
         { status: 405, headers: { "Content-Type": "application/json" } }
       );
   }
