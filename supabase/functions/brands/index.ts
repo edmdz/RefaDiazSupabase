@@ -147,7 +147,7 @@ async function handleGetBrandModels(req: Request): Promise<Response> {
     // Verificar que la marca existe y está activa
     const { data: brand, error: brandError } = await supabase
       .from("brand")
-      .select("id")
+      .select("*")
       .eq("id", brandId)
       .eq("active", true)
       .single();
@@ -180,8 +180,14 @@ async function handleGetBrandModels(req: Request): Promise<Response> {
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
+    console.log(brand);
 
-    const camelCaseModels = convertToCamelCase(models);
+    const modelsWithBrand = models.map(model => ({
+      ...model,
+      brand: brand
+    }));
+
+    const camelCaseModels = convertToCamelCase(modelsWithBrand);
     return new Response(
       JSON.stringify(camelCaseModels),
       { status: 200, headers: { "Content-Type": "application/json" } }
