@@ -180,7 +180,6 @@ async function handleGetBrandModels(req: Request): Promise<Response> {
         { status: 500, headers: { "Content-Type": "application/json" } }
       );
     }
-    console.log(brand);
 
     const modelsWithBrand = models.map(model => ({
       ...model,
