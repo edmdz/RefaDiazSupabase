@@ -3,7 +3,8 @@ import { supabase } from "./config.ts";
 
 /**
  * GET /products
- * Retorna todos los registros de la tabla "product" con su "product_type" relacionado.
+ * Retorna todos los registros de la tabla "product" con su "product_type" relacionado
+ * y los "car_model" asociados a través de "product_car_model".
  * Soporta búsqueda por nombre con el parámetro "name" y filtrado por tipo de producto con "productTypeId".
  */
 export async function handleGetProducts(req: Request): Promise<Response> {
@@ -16,9 +17,21 @@ export async function handleGetProducts(req: Request): Promise<Response> {
       .from("product")
       .select(`
         *,
-        product_type(id, name)
+        product_type(id, name),
+        product_car_model!product_car_model_product_id_fkey(
+          car_model_id,
+          initial_year,
+          last_year,
+          active,
+          car_model:car_model_id(
+            id,
+            name,
+            brand:brand_id(id, name)
+          )
+        )
       `)
-      .eq("active", true);
+      .eq("active", true)
+      .eq("product_car_model.active", true);
 
     if (name) {
       query = query.ilike("name", `%${name}%`);
@@ -37,8 +50,26 @@ export async function handleGetProducts(req: Request): Promise<Response> {
       );
     }
 
+    // Procesar los datos para estructurar mejor los carModels
+    const processedData = data?.map(product => ({
+      ...product,
+      carModels: product.product_car_model?.map((pcm: any) => ({
+        carModelId: pcm.car_model_id,
+        initialYear: pcm.initial_year,
+        lastYear: pcm.last_year,
+        active: pcm.active,
+        carModel: pcm.car_model
+      })) || []
+    }));
+
+    // Remover el atributo product_car_model original ya que ahora tenemos carModels
+    const cleanedData = processedData?.map(product => {
+      const { product_car_model, ...rest } = product;
+      return rest;
+    });
+
     // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseData = convertToCamelCase(data);
+    const camelCaseData = convertToCamelCase(cleanedData);
 
     return new Response(
       JSON.stringify(camelCaseData),

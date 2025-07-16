@@ -334,11 +334,8 @@ async function handleDeleteProvider(req: Request): Promise<Response> {
       );
     }
 
-    const camelCaseProviderData = convertToCamelCase(providerData);
-    return new Response(
-      JSON.stringify(camelCaseProviderData),
-      { status: 200, headers: { "Content-Type": "application/json" } }
-    );
+    // Regresar 204 No Content si la eliminación fue exitosa
+    return new Response(null, { status: 204 });
   } catch (err) {
     return new Response(
       JSON.stringify({ error: "Error al procesar la solicitud" }),

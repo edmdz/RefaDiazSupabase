@@ -4,7 +4,8 @@ import { supabase } from "./config.ts";
 /**
  * GET /models/products
  * Retorna todos los productos asociados a un modelo específico, con filtro opcional por tipo de producto.
- * Devuelve los objetos de product_car_model con la información del producto anidada.
+ * Devuelve los objetos de product_car_model con la información del producto anidada,
+ * incluyendo todos los carModels asociados a cada producto.
  * 
  * Query params:
  * - modelId: ID del modelo (obligatorio)
@@ -59,11 +60,23 @@ export async function handleGetModelProducts(req: Request): Promise<Response> {
           stock_count, 
           dpi, 
           product_type_id,
-          product_type:product_type_id(id, name)
+          product_type:product_type_id(id, name),
+          product_car_model!product_car_model_product_id_fkey(
+            car_model_id,
+            initial_year,
+            last_year,
+            active,
+            car_model:car_model_id(
+              id,
+              name,
+              brand:brand_id(id, name)
+            )
+          )
         )
       `)
       .eq("car_model_id", modelId)
-      .eq("active", true);
+      .eq("active", true)
+      .eq("product.product_car_model.active", true);
 
     const { data: productCarModels, error: productsError } = await query;
 
@@ -82,8 +95,37 @@ export async function handleGetModelProducts(req: Request): Promise<Response> {
       );
     }
 
+    // Procesar los datos para estructurar mejor los carModels en cada producto
+    const processedData = filteredProductCarModels?.map(pcm => ({
+      ...pcm,
+      product: pcm.product ? {
+        ...pcm.product,
+        carModels: pcm.product.product_car_model?.map((productCarModel: any) => ({
+          carModelId: productCarModel.car_model_id,
+          initialYear: productCarModel.initial_year,
+          lastYear: productCarModel.last_year,
+          active: productCarModel.active,
+          carModel: productCarModel.car_model
+        })) || [],
+        // Remover el atributo product_car_model original
+        product_car_model: undefined
+      } : null
+    }));
+
+    // Limpiar los datos eliminando product_car_model anidado
+    const cleanedData = processedData?.map(pcm => {
+      if (pcm.product) {
+        const { product_car_model, ...cleanProduct } = pcm.product;
+        return {
+          ...pcm,
+          product: cleanProduct
+        };
+      }
+      return pcm;
+    });
+
     // Convertir a camelCase antes de enviar la respuesta
-    const camelCaseResponse = convertToCamelCase(filteredProductCarModels);
+    const camelCaseResponse = convertToCamelCase(cleanedData);
 
     return new Response(
       JSON.stringify(camelCaseResponse),

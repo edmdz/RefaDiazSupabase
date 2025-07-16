@@ -4,7 +4,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 // Importa el cliente de Supabase desde esm.sh
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { serveWithCors } from "../_shared/server.ts";
-import { convertToSnakeCase } from "../_shared/utils.ts"; // Solo mantenemos este por si acaso
+import { convertToSnakeCase, convertToCamelCase } from "../_shared/utils.ts"; // Solo mantenemos este por si acaso
 
 // Obtén las variables de entorno necesarias para la conexión
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -38,7 +38,7 @@ async function handleGetUsers(req: Request): Promise<Response> {
   }
 
   return new Response(
-    JSON.stringify(data),
+    JSON.stringify(convertToCamelCase(data)),
     { status: 200, headers: { "Content-Type": "application/json" } }
   );
 }
@@ -69,15 +69,15 @@ async function handleGetUserById(req: Request): Promise<Response> {
     if (error) {
       return new Response(
         JSON.stringify({ error: error.message }),
-        { 
+        {
           status: error.code === "PGRST116" ? 404 : 500,
-          headers: { "Content-Type": "application/json" } 
+          headers: { "Content-Type": "application/json" }
         }
       );
     }
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(convertToCamelCase(data)),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
@@ -119,24 +119,42 @@ async function handlePostUser(req: Request): Promise<Response> {
     }
 
     const body = await req.json();
-    
-    const { id, person, roleId, active } = body;
 
-    if (!id || !person || !roleId) {
+    const { password, person, roleId, active } = body;
+
+    const email = person?.email;
+
+    if (!email || !password || !person || !roleId) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: id, person or roleId" }),
+        JSON.stringify({ error: "Missing required fields: person.email, password, person o roleId" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
     }
 
-    // Usar el stored procedure con el formato correcto
+    // 1. Crear usuario en Supabase Auth
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true
+    });
+
+    if (authError || !authUser || !authUser.user || !authUser.user.id) {
+      return new Response(
+        JSON.stringify({ error: authError?.message || "No se pudo crear el usuario en Auth" }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const id = authUser.user.id;
+
+    // 2. Crear registro en la tabla user usando el ID generado
     const userData = {
       id,
       person: {
         name: person.name,
         lastName: person.lastName,
         birthDate: person.birthDate,
-        email: person.email,
+        email: email, // Aseguramos que el email sea el mismo
         phoneNumber: person.phoneNumber,
         address: person.address
       },
@@ -158,12 +176,12 @@ async function handlePostUser(req: Request): Promise<Response> {
     }
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(convertToCamelCase(data)),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: "Invalid JSON payload or unexpected error" }),
+      JSON.stringify({ error: "Invalid JSON payload o error inesperado" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
@@ -205,7 +223,7 @@ async function handlePutUser(req: Request): Promise<Response> {
     // Obtener el person_id del usuario
     const { data: userData, error: fetchError } = await supabase
       .from("user")
-      .select("personId")
+      .select("person_id")
       .eq("id", id)
       .single();
 
@@ -222,13 +240,13 @@ async function handlePutUser(req: Request): Promise<Response> {
         .from("person")
         .update({
           name: person.name,
-          lastName: person.lastName,
-          birthDate: person.birthDate,
+          last_name: person.lastName,
+          birth_date: person.birthDate,
           email: person.email,
-          phoneNumber: person.phoneNumber,
+          phone_number: person.phoneNumber,
           address: person.address
         })
-        .eq("id", userData.personId);
+        .eq("id", userData.person_id);
 
       if (personError) {
         return new Response(
@@ -239,8 +257,8 @@ async function handlePutUser(req: Request): Promise<Response> {
     }
 
     // Actualizar user
-    const updateData: { roleId?: number; active?: number } = {};
-    if (roleId !== undefined) updateData.roleId = roleId;
+    const updateData: { role_id?: number; active?: number } = {};
+    if (roleId !== undefined) updateData.role_id = roleId;
     if (active !== undefined) updateData.active = active;
 
     const { data, error } = await supabase
@@ -258,7 +276,7 @@ async function handlePutUser(req: Request): Promise<Response> {
     }
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(convertToCamelCase(data)),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
@@ -298,6 +316,16 @@ async function handleDeleteUser(req: Request): Promise<Response> {
       );
     }
 
+    // 1. Eliminar de Supabase Auth
+    const { error: authError } = await supabase.auth.admin.deleteUser(id);
+    if (authError) {
+      return new Response(
+        JSON.stringify({ error: authError.message }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    // 2. Desactivar en la base de datos
     const { error: updateError } = await supabase
       .from("user")
       .update({ active: 0 })
@@ -311,7 +339,7 @@ async function handleDeleteUser(req: Request): Promise<Response> {
     }
 
     return new Response(
-      JSON.stringify(userData),
+      JSON.stringify(convertToCamelCase(userData)),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err) {
