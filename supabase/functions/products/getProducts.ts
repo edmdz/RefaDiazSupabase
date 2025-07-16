@@ -1,5 +1,6 @@
 import { convertToCamelCase } from "../_shared/utils.ts";
 import { supabase } from "./config.ts";
+import { buildProductQuery } from "./productFilterService.ts";
 
 /**
  * GET /products
@@ -12,21 +13,24 @@ export async function handleGetProducts(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const name = url.searchParams.get("name");
     const productTypeId = url.searchParams.get("productTypeId");
+    const brandId = url.searchParams.get("brandId");
+    const modelId = url.searchParams.get("modelId");
+    const modelYear = url.searchParams.get("modelYear");
 
     let query = supabase
       .from("product")
       .select(`
         *,
         product_type(id, name),
-        product_car_model!product_car_model_product_id_fkey(
+        product_car_model!inner(
           car_model_id,
           initial_year,
           last_year,
           active,
-          car_model:car_model_id(
+          car_model!inner(
             id,
             name,
-            brand:brand_id(id, name)
+            brand!inner(id, name)
           )
         )
       `)
@@ -40,6 +44,8 @@ export async function handleGetProducts(req: Request): Promise<Response> {
     if (productTypeId) {
       query = query.eq("product_type_id", productTypeId);
     }
+
+    query = buildProductQuery(query, { brandId: brandId || undefined, modelId: modelId || undefined, modelYear: modelYear || undefined });
 
     const { data, error } = await query;
 
