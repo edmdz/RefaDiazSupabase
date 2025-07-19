@@ -100,7 +100,7 @@ export async function handleGetModelProducts(req: Request): Promise<Response> {
       ...pcm,
       product: pcm.product ? {
         ...pcm.product,
-        carModels: pcm.product.product_car_model?.map((productCarModel: any) => ({
+        productCarModels: pcm.product.product_car_model?.map((productCarModel: any) => ({
           carModelId: productCarModel.car_model_id,
           initialYear: productCarModel.initial_year,
           lastYear: productCarModel.last_year,

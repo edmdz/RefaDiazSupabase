@@ -59,7 +59,7 @@ export async function handleGetProducts(req: Request): Promise<Response> {
     // Procesar los datos para estructurar mejor los carModels
     const processedData = data?.map(product => ({
       ...product,
-      carModels: product.product_car_model?.map((pcm: any) => ({
+      productCarModels: product.product_car_model?.map((pcm: any) => ({
         carModelId: pcm.car_model_id,
         initialYear: pcm.initial_year,
         lastYear: pcm.last_year,
