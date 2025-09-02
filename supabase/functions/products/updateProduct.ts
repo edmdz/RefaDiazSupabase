@@ -108,13 +108,34 @@ export async function handlePutProduct(req: Request): Promise<Response> {
     }
 
     const productData = await req.json();
+
+    // Mapper para transformar la estructura del request body
+    function mapProductRequestBody(body: any) {
+      return {
+        name: body.name,
+        comments: body.comments,
+        stockCount: body.stockCount,
+        dpi: body.dpi,
+        productTypeId: body.productTypeId,
+        files: body.files || [],
+        carModels: (body.productCarModels || []).map((pcm: any) => ({
+          carModelId: pcm.carModelId,
+          initialYear: pcm.initialYear,
+          lastYear: pcm.lastYear
+        })),
+        prices: body.productPrices || [],
+        providers: body.productProviders || []
+      };
+    }
+
+    const mappedProductData = mapProductRequestBody(productData);
     
     // Llamar al procedimiento almacenado para actualizar el producto con todas sus relaciones
     const { data, error } = await supabase.rpc(
       'update_product_with_relations',
       { 
         p_product_id: productId,
-        product_data: productData 
+        product_data: mappedProductData 
       }
     );
     

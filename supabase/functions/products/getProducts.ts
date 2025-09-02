@@ -1,18 +1,33 @@
 import { convertToCamelCase } from "../_shared/utils.ts";
 import { supabase } from "./config.ts";
 import { buildProductQuery } from "./productFilterService.ts";
+import { handleSmartSearch } from "./productSearchService.ts"; // Importar la nueva función
 
 /**
  * GET /products
- * Retorna todos los registros de la tabla "product" con su "product_type" relacionado
- * y los "car_model" asociados a través de "product_car_model".
- * Soporta búsqueda por nombre con el parámetro "name" y filtrado por tipo de producto con "productTypeId".
+ * Retorna registros de la tabla "product".
+ * Si se proporciona el parámetro 'q', realiza una búsqueda inteligente.
+ * De lo contrario, aplica filtros estándar como 'name', 'productTypeId', etc.
  */
 export async function handleGetProducts(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url);
-    const name = url.searchParams.get("name");
+    const q = url.searchParams.get("q");
     const productTypeId = url.searchParams.get("productTypeId");
+
+    // Si 'q' está presente, usar la búsqueda inteligente
+    if (q) {
+      if (!productTypeId) {
+        return new Response(
+          JSON.stringify({ error: "El parámetro 'productTypeId' es obligatorio para la búsqueda inteligente." }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        );
+      }
+      return handleSmartSearch(q, productTypeId);
+    }
+
+    // Lógica de filtrado original si 'q' no está presente
+    const name = url.searchParams.get("name");
     const brandId = url.searchParams.get("brandId");
     const modelId = url.searchParams.get("modelId");
     const modelYear = url.searchParams.get("modelYear");
@@ -35,7 +50,8 @@ export async function handleGetProducts(req: Request): Promise<Response> {
         )
       `)
       .eq("active", true)
-      .eq("product_car_model.active", true);
+      .eq("product_car_model.active", true)
+      .order("created_at", { ascending: false });
 
     if (name) {
       query = query.ilike("name", `%${name}%`);
@@ -56,7 +72,6 @@ export async function handleGetProducts(req: Request): Promise<Response> {
       );
     }
 
-    // Procesar los datos para estructurar mejor los carModels
     const processedData = data?.map(product => ({
       ...product,
       productCarModels: product.product_car_model?.map((pcm: any) => ({
@@ -68,13 +83,11 @@ export async function handleGetProducts(req: Request): Promise<Response> {
       })) || []
     }));
 
-    // Remover el atributo product_car_model original ya que ahora tenemos carModels
     const cleanedData = processedData?.map(product => {
       const { product_car_model, ...rest } = product;
       return rest;
     });
 
-    // Convertir a camelCase antes de enviar la respuesta
     const camelCaseData = convertToCamelCase(cleanedData);
 
     return new Response(

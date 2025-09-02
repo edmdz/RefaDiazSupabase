@@ -10,6 +10,7 @@ export async function handleGetModels(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url);
     const name = url.searchParams.get("name");
+    const brandId = url.searchParams.get("brandId");
 
     let query = supabase
       .from("car_model")
@@ -18,6 +19,9 @@ export async function handleGetModels(req: Request): Promise<Response> {
 
     if (name) {
       query = query.ilike("name", `%${name}%`);
+    }
+    if (brandId) {
+      query = query.eq("brand_id", brandId);
     }
 
     const { data, error } = await query;

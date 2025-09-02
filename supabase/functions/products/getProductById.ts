@@ -90,6 +90,9 @@ export async function handleGetProductById(req: Request): Promise<Response> {
     // Agregar los archivos a la respuesta
     const responseData = {
       ...data,
+      productCarModels: data.car_models,
+      productPrices: data.prices,
+      productProviders: data.providers,
       files: files
     };
 

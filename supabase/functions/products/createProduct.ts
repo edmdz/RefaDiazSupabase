@@ -68,6 +68,28 @@ export async function handlePostProduct(req: Request): Promise<Response> {
     }
 
     const productData = await req.json();
+
+    // Mapper para transformar la estructura del request body
+    function mapProductRequestBody(body: any) {
+      return {
+        name: body.name,
+        comments: body.comments,
+        stockCount: body.stockCount,
+        dpi: body.dpi,
+        productTypeId: body.productTypeId,
+        files: body.files || [],
+        carModels: (body.productCarModels || []).map((pcm: any) => ({
+          carModelId: pcm.carModelId,
+          initialYear: pcm.initialYear,
+          lastYear: pcm.lastYear
+        })),
+        prices: body.productPrices || [],
+        providers: body.productProviders || []
+      };
+    }
+
+    const mappedProductData = mapProductRequestBody(productData);
+    console.log('mappedProductData', mappedProductData)
     
     // Validar que el cuerpo tenga los campos requeridos
     if (!productData.name || !productData.productTypeId) {
@@ -80,7 +102,7 @@ export async function handlePostProduct(req: Request): Promise<Response> {
     // Llamar al procedimiento almacenado para crear el producto con todas sus relaciones
     const { data, error } = await supabase.rpc(
       'create_product_with_relations',
-      { product_data: productData }
+      { product_data: mappedProductData }
     );
     
     if (error) {
