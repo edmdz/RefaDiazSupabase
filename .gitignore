@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Supabase local runtime artifacts
+supabase/.temp/
