@@ -1015,7 +1015,8 @@ INSERT INTO "auth"."refresh_tokens" ("instance_id", "id", "token", "user_id", "r
 
 INSERT INTO "public"."brand_type" ("active", "created_at", "updated_at", "id", "type") VALUES
 	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 1, 'Automotive'),
-	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 2, 'Heavy-Duty');
+	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 2, 'Heavy-Duty')
+ON CONFLICT (id) DO NOTHING;
 
 
 --
@@ -2038,14 +2039,14 @@ SELECT pg_catalog.setval('"auth"."refresh_tokens_id_seq"', 402, true);
 -- Name: brand_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."brand_id_seq"', 48, true);
+SELECT pg_catalog.setval('"public"."brand_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public.brand), true);
 
 
 --
 -- Name: brand_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."brand_type_id_seq"', 2, true);
+SELECT pg_catalog.setval('"public"."brand_type_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public.brand_type), true);
 
 
 --
@@ -2066,7 +2067,7 @@ SELECT pg_catalog.setval('"public"."client_id_seq"', 1, false);
 -- Name: file_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('"public"."file_id_seq"', 121, true);
+SELECT pg_catalog.setval('"public"."file_id_seq"', (SELECT COALESCE(MAX(id), 1) FROM public.file), true);
 
 
 --
