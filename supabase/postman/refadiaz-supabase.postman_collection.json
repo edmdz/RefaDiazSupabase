@@ -1,0 +1,929 @@
+{
+  "info": {
+    "name": "RefaDiaz Supabase Edge Functions",
+    "description": "Postman flow for the Supabase edge functions currently present in this workspace. Defaults target local Supabase CLI.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:54321/functions/v1"
+    },
+    {
+      "key": "anonKey",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+    },
+    {
+      "key": "accessToken",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0"
+    },
+    {
+      "key": "brandIdSeed",
+      "value": "16"
+    },
+    {
+      "key": "modelIdSeed",
+      "value": "6"
+    },
+    {
+      "key": "productIdSeed",
+      "value": "2"
+    },
+    {
+      "key": "providerIdSeed",
+      "value": "2"
+    },
+    {
+      "key": "fileIdSeed",
+      "value": "1"
+    },
+    {
+      "key": "fileTypeIdBrand",
+      "value": "1"
+    },
+    {
+      "key": "fileTypeIdProduct",
+      "value": "2"
+    },
+    {
+      "key": "productTypeIdRadiator",
+      "value": "1"
+    },
+    {
+      "key": "roleIdAdmin",
+      "value": "1"
+    },
+    {
+      "key": "userIdSeed",
+      "value": "67f28c39-a33a-436d-b004-5418dacc32d6"
+    },
+    {
+      "key": "dummyFileObjectId",
+      "value": "999999"
+    },
+    {
+      "key": "brandIdCreated",
+      "value": ""
+    },
+    {
+      "key": "modelIdCreated",
+      "value": ""
+    },
+    {
+      "key": "providerIdCreated",
+      "value": ""
+    },
+    {
+      "key": "personIdCreated",
+      "value": ""
+    },
+    {
+      "key": "userIdCreated",
+      "value": ""
+    },
+    {
+      "key": "productIdCreated",
+      "value": ""
+    },
+    {
+      "key": "productFileIdCreated",
+      "value": ""
+    },
+    {
+      "key": "fileIdCreated",
+      "value": ""
+    },
+    {
+      "key": "brandNameCreate",
+      "value": ""
+    },
+    {
+      "key": "brandSlugCreate",
+      "value": ""
+    },
+    {
+      "key": "brandNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "brandSlugUpdate",
+      "value": ""
+    },
+    {
+      "key": "modelNameCreate",
+      "value": ""
+    },
+    {
+      "key": "modelNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "providerNameCreate",
+      "value": ""
+    },
+    {
+      "key": "providerPhoneCreate",
+      "value": ""
+    },
+    {
+      "key": "providerNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "providerPhoneUpdate",
+      "value": ""
+    },
+    {
+      "key": "personEmailCreate",
+      "value": ""
+    },
+    {
+      "key": "personEmailUpdate",
+      "value": ""
+    },
+    {
+      "key": "userEmailCreate",
+      "value": ""
+    },
+    {
+      "key": "userPasswordCreate",
+      "value": ""
+    },
+    {
+      "key": "productNameCreate",
+      "value": ""
+    },
+    {
+      "key": "productDpiCreate",
+      "value": ""
+    },
+    {
+      "key": "productFileNameCreate",
+      "value": ""
+    },
+    {
+      "key": "productNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "productDpiUpdate",
+      "value": ""
+    },
+    {
+      "key": "productFileNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "fileNameCreate",
+      "value": ""
+    },
+    {
+      "key": "fileNameUpdate",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Seed Reads",
+      "item": [
+        {
+          "name": "GET /brands",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/brands"
+          }
+        },
+        {
+          "name": "GET /brands?id=16",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/brands?id={{brandIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /brands?id=16&models=true",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/brands?id={{brandIdSeed}}&models=true&name=F"
+          }
+        },
+        {
+          "name": "GET /models",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/models?brandId={{brandIdSeed}}&name=F"
+          }
+        },
+        {
+          "name": "GET /models?id=6",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/models?id={{modelIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /models/products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/models/products?modelId={{modelIdSeed}}&productTypeId={{productTypeIdRadiator}}"
+          }
+        },
+        {
+          "name": "GET /providers",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/providers?name=FRO"
+          }
+        },
+        {
+          "name": "GET /providers?id=2",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/providers?id={{providerIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /persons",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/persons"
+          }
+        },
+        {
+          "name": "GET /users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "GET /users?id=<seed>",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users?id={{userIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /files",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/files?object_id={{brandIdSeed}}&file_type_id={{fileTypeIdBrand}}"
+          }
+        },
+        {
+          "name": "GET /files?id=1",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/files?id={{fileIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products?productTypeId={{productTypeIdRadiator}}&modelId={{modelIdSeed}}&modelYear=2018"
+          }
+        },
+        {
+          "name": "GET /products?id=2",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products?id={{productIdSeed}}"
+          }
+        },
+        {
+          "name": "GET /products smart search",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products?q=DPI13510&productTypeId={{productTypeIdRadiator}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Brands Flow",
+      "item": [
+        {
+          "name": "POST /brands",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('brandNameCreate', `Postman Brand ${suffix}`);",
+                  "pm.collectionVariables.set('brandSlugCreate', `postman-brand-${suffix}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('brandIdCreated', String(body.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{brandNameCreate}}\",\n  \"brandTypeId\": 1,\n  \"active\": true,\n  \"file\": {\n    \"name\": \"{{brandNameCreate}} Logo\",\n    \"mimeType\": \"image/png\",\n    \"storagePath\": \"/brands/logos/{{brandSlugCreate}}.png\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/brands"
+          }
+        },
+        {
+          "name": "GET /brands?id={{brandIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/brands?id={{brandIdCreated}}"
+          }
+        },
+        {
+          "name": "PUT /brands?id={{brandIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('brandNameUpdate', `Postman Brand Updated ${suffix}`);",
+                  "pm.collectionVariables.set('brandSlugUpdate', `postman-brand-updated-${suffix}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{brandNameUpdate}}\",\n  \"brandTypeId\": 1,\n  \"active\": true,\n  \"file\": {\n    \"name\": \"{{brandNameUpdate}} Logo\",\n    \"mimeType\": \"image/png\",\n    \"storagePath\": \"/brands/logos/{{brandSlugUpdate}}.png\"\n  }\n}"
+            },
+            "url": "{{baseUrl}}/brands?id={{brandIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /brands?id={{brandIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/brands?id={{brandIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Models Flow",
+      "item": [
+        {
+          "name": "POST /models?forceCreate=true",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('modelNameCreate', `POSTMAN_MODEL_${Date.now()}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('modelIdCreated', String(body.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{modelNameCreate}}\",\n  \"brandId\": {{brandIdSeed}},\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/models?forceCreate=true"
+          }
+        },
+        {
+          "name": "GET /models?id={{modelIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/models?id={{modelIdCreated}}"
+          }
+        },
+        {
+          "name": "PUT /models?id={{modelIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('modelNameUpdate', `POSTMAN_MODEL_UPDATED_${Date.now()}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{modelNameUpdate}}\",\n  \"brandId\": {{brandIdSeed}},\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/models?id={{modelIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /models?id={{modelIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/models?id={{modelIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Providers Flow",
+      "item": [
+        {
+          "name": "POST /providers",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('providerNameCreate', `Postman Provider ${suffix}`);",
+                  "pm.collectionVariables.set('providerPhoneCreate', `811${suffix.slice(-7)}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('providerIdCreated', String(body.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{providerNameCreate}}\",\n  \"phoneNumber\": \"{{providerPhoneCreate}}\",\n  \"address\": \"Postman Avenue 100\",\n  \"comments\": \"Created from Postman flow\"\n}"
+            },
+            "url": "{{baseUrl}}/providers"
+          }
+        },
+        {
+          "name": "GET /providers?id={{providerIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/providers?id={{providerIdCreated}}"
+          }
+        },
+        {
+          "name": "PUT /providers?id={{providerIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('providerNameUpdate', `Postman Provider Updated ${suffix}`);",
+                  "pm.collectionVariables.set('providerPhoneUpdate', `812${suffix.slice(-7)}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{providerNameUpdate}}\",\n  \"phoneNumber\": \"{{providerPhoneUpdate}}\",\n  \"address\": \"Postman Avenue 200\",\n  \"comments\": \"Updated from Postman flow\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/providers?id={{providerIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /providers?id={{providerIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/providers?id={{providerIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Persons Flow",
+      "item": [
+        {
+          "name": "POST /persons",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('personEmailCreate', `postman.person.${suffix}@example.com`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const entity = Array.isArray(body) ? body[0] : body;",
+                  "pm.collectionVariables.set('personIdCreated', String(entity.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman\",\n  \"lastName\": \"Person\",\n  \"birthDate\": \"1991-01-01\",\n  \"email\": \"{{personEmailCreate}}\",\n  \"phoneNumber\": \"8185001000\",\n  \"address\": \"Postman Person 100\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/persons"
+          }
+        },
+        {
+          "name": "GET /persons",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/persons"
+          }
+        },
+        {
+          "name": "PUT /persons?id={{personIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('personEmailUpdate', `postman.person.updated.${suffix}@example.com`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Postman Updated\",\n  \"lastName\": \"Person\",\n  \"birthDate\": \"1991-01-01\",\n  \"email\": \"{{personEmailUpdate}}\",\n  \"phoneNumber\": \"8185002000\",\n  \"address\": \"Postman Person 200\",\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/persons?id={{personIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /persons?id={{personIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/persons?id={{personIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Users Flow",
+      "item": [
+        {
+          "name": "POST /users",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('userEmailCreate', `postman.user.${suffix}@example.com`);",
+                  "pm.collectionVariables.set('userPasswordCreate', `Postman!${suffix.slice(-6)}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const entity = Array.isArray(body) ? body[0] : body;",
+                  "pm.collectionVariables.set('userIdCreated', String(entity.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{userPasswordCreate}}\",\n  \"person\": {\n    \"name\": \"Postman\",\n    \"lastName\": \"User\",\n    \"birthDate\": \"1992-02-02\",\n    \"email\": \"{{userEmailCreate}}\",\n    \"phoneNumber\": \"8185003000\",\n    \"address\": \"Postman User 100\"\n  },\n  \"roleId\": {{roleIdAdmin}},\n  \"active\": 1\n}"
+            },
+            "url": "{{baseUrl}}/users"
+          }
+        },
+        {
+          "name": "GET /users?id={{userIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/users?id={{userIdCreated}}"
+          }
+        },
+        {
+          "name": "PUT /users?id={{userIdCreated}}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"person\": {\n    \"name\": \"Postman Updated\",\n    \"lastName\": \"User\",\n    \"birthDate\": \"1992-02-02\",\n    \"email\": \"{{userEmailCreate}}\",\n    \"phoneNumber\": \"8185004000\",\n    \"address\": \"Postman User 200\"\n  },\n  \"roleId\": 2,\n  \"active\": 1\n}"
+            },
+            "url": "{{baseUrl}}/users?id={{userIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /users?id={{userIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/users?id={{userIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Products Flow",
+      "item": [
+        {
+          "name": "POST /products",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('productNameCreate', `POSTMAN PRODUCT ${suffix}`);",
+                  "pm.collectionVariables.set('productDpiCreate', `PM-${suffix}`);",
+                  "pm.collectionVariables.set('productFileNameCreate', `postman-product-${suffix}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "pm.collectionVariables.set('productIdCreated', String(body.id));",
+                  "if (body.files && body.files.length > 0) {",
+                  "  pm.collectionVariables.set('productFileIdCreated', String(body.files[0].id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{productNameCreate}}\",\n  \"comments\": \"Created from Postman flow\",\n  \"stockCount\": 3,\n  \"dpi\": \"{{productDpiCreate}}\",\n  \"productTypeId\": {{productTypeIdRadiator}},\n  \"files\": [\n    {\n      \"name\": \"{{productFileNameCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{productFileNameCreate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-SERIES-001\",\n      \"price\": {\n        \"description\": \"Costo Postman\",\n        \"cost\": \"$1,234.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta Postman\",\n        \"cost\": \"$2,345.00\"\n      }\n    }\n  ],\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2015,\n      \"lastYear\": 2020\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/products"
+          }
+        },
+        {
+          "name": "GET /products?id={{productIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+          }
+        },
+        {
+          "name": "PUT /products?id={{productIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const suffix = Date.now().toString();",
+                  "pm.collectionVariables.set('productNameUpdate', `POSTMAN PRODUCT UPDATED ${suffix}`);",
+                  "pm.collectionVariables.set('productDpiUpdate', `PM-UPD-${suffix}`);",
+                  "pm.collectionVariables.set('productFileNameUpdate', `postman-product-updated-${suffix}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{productNameUpdate}}\",\n  \"comments\": \"Updated from Postman flow\",\n  \"stockCount\": 5,\n  \"dpi\": \"{{productDpiUpdate}}\",\n  \"productTypeId\": {{productTypeIdRadiator}},\n  \"files\": [\n    {\n      \"id\": {{productFileIdCreated}},\n      \"name\": \"{{productFileNameUpdate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{productFileNameUpdate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-SERIES-002\",\n      \"price\": {\n        \"description\": \"Costo Postman actualizado\",\n        \"cost\": \"$1,444.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta Postman actualizada\",\n        \"cost\": \"$2,999.00\"\n      }\n    }\n  ],\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2015,\n      \"lastYear\": 2021\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /products?id={{productIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Files Flow",
+      "item": [
+        {
+          "name": "POST /files",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('fileNameCreate', `postman-file-${Date.now()}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const body = pm.response.json();",
+                  "const entity = Array.isArray(body) ? body[0] : body;",
+                  "pm.collectionVariables.set('fileIdCreated', String(entity.id));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{fileNameCreate}}.png\",\n  \"mimeType\": \"image/png\",\n  \"storagePath\": \"/postman/{{fileNameCreate}}.png\",\n  \"objectId\": {{dummyFileObjectId}},\n  \"orderId\": 1,\n  \"fileTypeId\": {{fileTypeIdProduct}},\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/files"
+          }
+        },
+        {
+          "name": "GET /files?id={{fileIdCreated}}",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/files?id={{fileIdCreated}}"
+          }
+        },
+        {
+          "name": "GET /files?object_id={{dummyFileObjectId}}&file_type_id=2",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/files?object_id={{dummyFileObjectId}}&file_type_id={{fileTypeIdProduct}}"
+          }
+        },
+        {
+          "name": "PUT /files?id={{fileIdCreated}}",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('fileNameUpdate', `postman-file-updated-${Date.now()}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{fileNameUpdate}}.png\",\n  \"mimeType\": \"image/png\",\n  \"storagePath\": \"/postman/{{fileNameUpdate}}.png\",\n  \"objectId\": {{dummyFileObjectId}},\n  \"orderId\": 2,\n  \"fileTypeId\": {{fileTypeIdProduct}},\n  \"active\": true\n}"
+            },
+            "url": "{{baseUrl}}/files?id={{fileIdCreated}}"
+          }
+        },
+        {
+          "name": "DELETE /files?id={{fileIdCreated}}",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/files?id={{fileIdCreated}}"
+          }
+        }
+      ]
+    }
+  ]
+}
