@@ -60,6 +60,10 @@
       "value": "1"
     },
     {
+      "key": "productTypeIdTapa",
+      "value": "2"
+    },
+    {
       "key": "roleIdAdmin",
       "value": "1"
     },
@@ -93,6 +97,10 @@
     },
     {
       "key": "productIdCreated",
+      "value": ""
+    },
+    {
+      "key": "componentProductIdCreated",
       "value": ""
     },
     {
@@ -164,11 +172,23 @@
       "value": ""
     },
     {
+      "key": "componentProductNameCreate",
+      "value": ""
+    },
+    {
       "key": "productDpiCreate",
       "value": ""
     },
     {
+      "key": "componentProductDpiCreate",
+      "value": ""
+    },
+    {
       "key": "productFileNameCreate",
+      "value": ""
+    },
+    {
+      "key": "componentProductFileNameCreate",
       "value": ""
     },
     {
@@ -741,6 +761,110 @@
     {
       "name": "07 Products Flow",
       "item": [
+        {
+          "name": "Components Example Flow",
+          "item": [
+            {
+              "name": "POST /products component (TAPA)",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('componentProductNameCreate', `POSTMAN COMPONENT ${suffix}`);",
+                      "pm.collectionVariables.set('componentProductDpiCreate', `PM-COMP-${suffix}`);",
+                      "pm.collectionVariables.set('componentProductFileNameCreate', `postman-component-${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('componentProductIdCreated', String(body.id));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{componentProductNameCreate}}\",\n  \"comments\": \"Postman component product example\",\n  \"stockCount\": 10,\n  \"dpi\": \"{{componentProductDpiCreate}}\",\n  \"productTypeId\": {{productTypeIdTapa}},\n  \"files\": [\n    {\n      \"name\": \"{{componentProductFileNameCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{componentProductFileNameCreate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-COMP-SERIES-001\",\n      \"price\": {\n        \"description\": \"Costo tapa Postman\",\n        \"cost\": \"$555.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta tapa Postman\",\n        \"cost\": \"$999.00\"\n      }\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products"
+              }
+            },
+            {
+              "name": "GET /products?id={{componentProductIdCreated}}",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{componentProductIdCreated}}"
+              }
+            },
+            {
+              "name": "POST /products radiator with components",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('productNameCreate', `POSTMAN PRODUCT ${suffix}`);",
+                      "pm.collectionVariables.set('productDpiCreate', `PM-${suffix}`);",
+                      "pm.collectionVariables.set('productFileNameCreate', `postman-product-${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('productIdCreated', String(body.id));",
+                      "if (body.files && body.files.length > 0) {",
+                      "  pm.collectionVariables.set('productFileIdCreated', String(body.files[0].id));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{productNameCreate}}\",\n  \"comments\": \"Radiator created from Postman component flow\",\n  \"stockCount\": 3,\n  \"dpi\": \"{{productDpiCreate}}\",\n  \"productTypeId\": {{productTypeIdRadiator}},\n  \"files\": [\n    {\n      \"name\": \"{{productFileNameCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{productFileNameCreate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-SERIES-001\",\n      \"price\": {\n        \"description\": \"Costo Postman\",\n        \"cost\": \"$1,234.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta Postman\",\n        \"cost\": \"$2,345.00\"\n      }\n    }\n  ],\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2015,\n      \"lastYear\": 2020\n    }\n  ],\n  \"components\": [\n    {\n      \"componentProductId\": {{componentProductIdCreated}}\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products"
+              }
+            },
+            {
+              "name": "GET /products?id={{productIdCreated}} component flow",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+              }
+            }
+          ]
+        },
         {
           "name": "POST /products",
           "event": [

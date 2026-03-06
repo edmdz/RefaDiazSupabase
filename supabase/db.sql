@@ -143,6 +143,14 @@ CREATE TABLE product_car_model (
     FOREIGN KEY (car_model_id) REFERENCES car_model(id) ON DELETE CASCADE
 ) INHERITS (control_fields);
 
+CREATE TABLE product_component (
+    product_id INT NOT NULL,
+    component_product_id INT NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE,
+    FOREIGN KEY (component_product_id) REFERENCES product(id) ON DELETE CASCADE,
+    UNIQUE (product_id, component_product_id)
+) INHERITS (control_fields);
+
 
 ALTER TABLE product
   ADD COLUMN parent_product_id INT,

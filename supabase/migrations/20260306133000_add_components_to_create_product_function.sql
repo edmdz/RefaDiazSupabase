@@ -16,9 +16,7 @@ DECLARE
   provider_price_id INT;
   result JSONB;
 BEGIN
-  -- Iniciar transacción
   BEGIN
-    -- 1. Insertar el producto principal
     INSERT INTO product (
       name,
       comments,
@@ -36,11 +34,9 @@ BEGIN
     )
     RETURNING id INTO new_product_id;
 
-    -- 2. Insertar archivos asociados
     IF product_data ? 'files' AND jsonb_array_length(product_data->'files') > 0 THEN
       FOR file_record IN SELECT * FROM jsonb_array_elements(product_data->'files')
       LOOP
-        -- Crear un nuevo archivo
         INSERT INTO file (
           name,
           mime_type,
@@ -54,18 +50,15 @@ BEGIN
           file_record->>'storagePath',
           COALESCE((file_record->>'orderId')::INT, 1),
           new_product_id,
-          2  -- Asumiendo que 1 es el ID para el tipo de archivo de producto
+          2
         );
       END LOOP;
     END IF;
 
-    -- 3. Insertar relaciones con proveedores y sus precios
     IF product_data ? 'providers' AND jsonb_array_length(product_data->'providers') > 0 THEN
       FOR provider_record IN SELECT * FROM jsonb_array_elements(product_data->'providers')
       LOOP
-        -- Crear el precio del proveedor si no existe
         IF provider_record ? 'price' AND provider_record->'price' ? 'description' AND provider_record->'price' ? 'cost' THEN
-          -- Crear un nuevo precio para el proveedor
           INSERT INTO price (
             description,
             cost
@@ -75,11 +68,9 @@ BEGIN
           )
           RETURNING id INTO provider_price_id;
         ELSE
-          -- Si no hay información de precio, usar el priceId proporcionado
           provider_price_id := (provider_record->>'priceId')::INT;
         END IF;
 
-        -- Insertar la relación proveedor-producto
         INSERT INTO provider_product (
           product_id,
           provider_id,
@@ -94,13 +85,10 @@ BEGIN
       END LOOP;
     END IF;
 
-    -- 4. Insertar precios asociados al producto
     IF product_data ? 'prices' AND jsonb_array_length(product_data->'prices') > 0 THEN
       FOR price_record IN SELECT * FROM jsonb_array_elements(product_data->'prices')
       LOOP
-        -- Crear un nuevo precio si contiene la información necesaria
         IF price_record ? 'price' AND price_record->'price' ? 'description' AND price_record->'price' ? 'cost' THEN
-          -- Crear un nuevo precio
           INSERT INTO price (
             description,
             cost
@@ -110,7 +98,6 @@ BEGIN
           )
           RETURNING id INTO new_price_id;
 
-          -- Insertar la relación producto-precio
           INSERT INTO product_price (
             product_id,
             price_id
@@ -119,7 +106,6 @@ BEGIN
             new_price_id
           );
         ELSE
-          -- Si no hay información de precio, usar el priceId proporcionado
           INSERT INTO product_price (
             product_id,
             price_id
@@ -131,7 +117,6 @@ BEGIN
       END LOOP;
     END IF;
 
-    -- 5. Insertar relaciones con modelos de carro
     IF product_data ? 'carModels' AND jsonb_array_length(product_data->'carModels') > 0 THEN
       FOR car_model_record IN SELECT * FROM jsonb_array_elements(product_data->'carModels')
       LOOP
@@ -149,7 +134,6 @@ BEGIN
       END LOOP;
     END IF;
 
-    -- 6. Insertar relaciones con componentes existentes
     IF product_data ? 'components' AND jsonb_array_length(product_data->'components') > 0 THEN
       FOR component_record IN SELECT * FROM jsonb_array_elements(product_data->'components')
       LOOP
@@ -169,7 +153,6 @@ BEGIN
       END LOOP;
     END IF;
 
-    -- Obtener el producto completo con todas sus relaciones
     SELECT jsonb_build_object(
       'id', p.id,
       'name', p.name,
@@ -297,8 +280,8 @@ BEGIN
     RETURN result;
   EXCEPTION
     WHEN OTHERS THEN
-      -- En caso de error, hacer rollback y devolver el error
       RAISE;
   END;
 END;
-$$; 
+$$;
+

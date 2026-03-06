@@ -51,6 +51,11 @@ import { supabase } from "./config.ts";
  *         "brand": { "id": 16, "name": "Ford" }
  *       }
  *     }
+ *   ],
+ *   "components": [
+ *     {
+ *       "componentProductId": 12
+ *     }
  *   ]
  * }
  * 
@@ -71,6 +76,14 @@ export async function handlePostProduct(req: Request): Promise<Response> {
 
     // Mapper para transformar la estructura del request body
     function mapProductRequestBody(body: any) {
+      const uniqueComponentIds = Array.from(
+        new Set(
+          (body.components || [])
+            .map((component: any) => component.componentProductId)
+            .filter((componentProductId: any) => componentProductId !== undefined && componentProductId !== null)
+        )
+      );
+
       return {
         name: body.name,
         comments: body.comments,
@@ -84,7 +97,10 @@ export async function handlePostProduct(req: Request): Promise<Response> {
           lastYear: pcm.lastYear
         })),
         prices: body.productPrices || [],
-        providers: body.productProviders || []
+        providers: body.productProviders || [],
+        components: uniqueComponentIds.map(componentProductId => ({
+          componentProductId
+        }))
       };
     }
 
