@@ -87,13 +87,114 @@ export async function handleGetProductById(req: Request): Promise<Response> {
       );
     }
 
+    // Obtener componentes asociados al producto.
+    // Se resuelven en una segunda consulta para mantener el cambio acotado
+    // y no depender de nombres de relaciones anidadas en PostgREST.
+    const { data: componentRelations, error: componentRelationsError } = await supabase
+      .from("product_component")
+      .select(`
+        product_id,
+        component_product_id,
+        active,
+        created_at
+      `)
+      .eq("product_id", id)
+      .order("created_at", { ascending: true });
+
+    if (componentRelationsError) {
+      return new Response(
+        JSON.stringify({ error: componentRelationsError.message }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    const activeComponentRelations = (componentRelations || []).filter(
+      relation => relation.active
+    );
+
+    const componentProductIds = activeComponentRelations.map(
+      relation => relation.component_product_id
+    );
+
+    let components: Array<{
+      componentProductId: number;
+      componentProduct: {
+        id: number;
+        name: string;
+        dpi: string | null;
+        productTypeId: number;
+        active: boolean | null;
+      };
+    }> = [];
+
+    if (componentProductIds.length > 0) {
+      const { data: componentProducts, error: componentProductsError } = await supabase
+        .from("product")
+        .select(`
+          id,
+          name,
+          dpi,
+          product_type_id,
+          active
+        `)
+        .in("id", componentProductIds)
+        .eq("active", true);
+
+      if (componentProductsError) {
+        return new Response(
+          JSON.stringify({ error: componentProductsError.message }),
+          { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+      }
+
+      const componentProductsById = new Map(
+        (componentProducts || []).map(componentProduct => [
+          componentProduct.id,
+          {
+            id: componentProduct.id,
+            name: componentProduct.name,
+            dpi: componentProduct.dpi,
+            productTypeId: componentProduct.product_type_id,
+            active: componentProduct.active
+          }
+        ])
+      );
+
+      components = activeComponentRelations
+        .map(relation => {
+          const componentProduct = componentProductsById.get(relation.component_product_id);
+
+          if (!componentProduct) {
+            return null;
+          }
+
+          return {
+            componentProductId: relation.component_product_id,
+            componentProduct
+          };
+        })
+        .filter(
+          (component): component is {
+            componentProductId: number;
+            componentProduct: {
+              id: number;
+              name: string;
+              dpi: string | null;
+              productTypeId: number;
+              active: boolean | null;
+            };
+          } => component !== null
+        );
+    }
+
     // Agregar los archivos a la respuesta
     const responseData = {
       ...data,
       productCarModels: data.car_models,
       productPrices: data.prices,
       productProviders: data.providers,
-      files: files
+      files: files,
+      components
     };
 
     // Convertir a camelCase antes de enviar la respuesta
@@ -109,4 +210,4 @@ export async function handleGetProductById(req: Request): Promise<Response> {
       { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
-} 
+}
