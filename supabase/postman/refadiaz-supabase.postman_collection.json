@@ -104,6 +104,10 @@
       "value": ""
     },
     {
+      "key": "componentProductIdUpdated",
+      "value": ""
+    },
+    {
       "key": "productFileIdCreated",
       "value": ""
     },
@@ -176,6 +180,10 @@
       "value": ""
     },
     {
+      "key": "componentProductNameUpdate",
+      "value": ""
+    },
+    {
       "key": "productDpiCreate",
       "value": ""
     },
@@ -184,11 +192,19 @@
       "value": ""
     },
     {
+      "key": "componentProductDpiUpdate",
+      "value": ""
+    },
+    {
       "key": "productFileNameCreate",
       "value": ""
     },
     {
       "key": "componentProductFileNameCreate",
+      "value": ""
+    },
+    {
+      "key": "componentProductFileNameUpdate",
       "value": ""
     },
     {
@@ -858,6 +874,85 @@
             },
             {
               "name": "GET /products?id={{productIdCreated}} component flow",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+              }
+            },
+            {
+              "name": "POST /products component (TAPA) for update",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('componentProductNameUpdate', `POSTMAN COMPONENT UPDATED ${suffix}`);",
+                      "pm.collectionVariables.set('componentProductDpiUpdate', `PM-COMP-UPD-${suffix}`);",
+                      "pm.collectionVariables.set('componentProductFileNameUpdate', `postman-component-updated-${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('componentProductIdUpdated', String(body.id));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{componentProductNameUpdate}}\",\n  \"comments\": \"Second Postman component product for update flow\",\n  \"stockCount\": 12,\n  \"dpi\": \"{{componentProductDpiUpdate}}\",\n  \"productTypeId\": {{productTypeIdTapa}},\n  \"files\": [\n    {\n      \"name\": \"{{componentProductFileNameUpdate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{componentProductFileNameUpdate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-COMP-SERIES-002\",\n      \"price\": {\n        \"description\": \"Costo tapa Postman update\",\n        \"cost\": \"$777.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta tapa Postman update\",\n        \"cost\": \"$1,199.00\"\n      }\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products"
+              }
+            },
+            {
+              "name": "PUT /products?id={{productIdCreated}} component flow",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('productNameUpdate', `POSTMAN PRODUCT UPDATED ${suffix}`);",
+                      "pm.collectionVariables.set('productDpiUpdate', `PM-UPD-${suffix}`);",
+                      "pm.collectionVariables.set('productFileNameUpdate', `postman-product-updated-${suffix}`);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{productNameUpdate}}\",\n  \"comments\": \"Radiator updated from Postman component flow\",\n  \"stockCount\": 5,\n  \"dpi\": \"{{productDpiUpdate}}\",\n  \"productTypeId\": {{productTypeIdRadiator}},\n  \"files\": [\n    {\n      \"id\": {{productFileIdCreated}},\n      \"name\": \"{{productFileNameUpdate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{productFileNameUpdate}}.png\",\n      \"orderId\": 1\n    }\n  ],\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"PM-SERIES-002\",\n      \"price\": {\n        \"description\": \"Costo Postman actualizado\",\n        \"cost\": \"$1,444.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Venta Postman actualizada\",\n        \"cost\": \"$2,999.00\"\n      }\n    }\n  ],\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2015,\n      \"lastYear\": 2021\n    }\n  ],\n  \"components\": [\n    {\n      \"componentProductId\": {{componentProductIdUpdated}}\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products?id={{productIdCreated}}"
+              }
+            },
+            {
+              "name": "GET /products?id={{productIdCreated}} after component update",
               "request": {
                 "method": "GET",
                 "url": "{{baseUrl}}/products?id={{productIdCreated}}"

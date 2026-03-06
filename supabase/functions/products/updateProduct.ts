@@ -77,6 +77,11 @@ import { supabase } from "./config.ts";
  *         "brand": { "id": 16, "name": "Ford" }
  *       }
  *     }
+ *   ],
+ *   "components": [
+ *     {
+ *       "componentProductId": 12
+ *     }
  *   ]
  * }
  * 
@@ -111,7 +116,15 @@ export async function handlePutProduct(req: Request): Promise<Response> {
 
     // Mapper para transformar la estructura del request body
     function mapProductRequestBody(body: any) {
-      return {
+      const uniqueComponentIds = Array.from(
+        new Set(
+          (body.components || [])
+            .map((component: any) => component.componentProductId)
+            .filter((componentProductId: any) => componentProductId !== undefined && componentProductId !== null)
+        )
+      );
+
+      const mappedBody: any = {
         name: body.name,
         comments: body.comments,
         stockCount: body.stockCount,
@@ -126,6 +139,14 @@ export async function handlePutProduct(req: Request): Promise<Response> {
         prices: body.productPrices || [],
         providers: body.productProviders || []
       };
+
+      if ("components" in body) {
+        mappedBody.components = uniqueComponentIds.map(componentProductId => ({
+          componentProductId
+        }));
+      }
+
+      return mappedBody;
     }
 
     const mappedProductData = mapProductRequestBody(productData);

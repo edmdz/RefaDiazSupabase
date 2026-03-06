@@ -25,14 +25,11 @@ DECLARE
   new_provider_ids INT[] := ARRAY[]::INT[];
   new_component_ids INT[] := ARRAY[]::INT[];
 BEGIN
-  -- Verificar que el producto existe
   IF NOT EXISTS (SELECT 1 FROM product WHERE id = p_product_id) THEN
     RAISE EXCEPTION 'El producto con ID % no existe', p_product_id;
   END IF;
 
-  -- Iniciar transacción
   BEGIN
-    -- 1. Actualizar el producto principal
     UPDATE product SET
       name = COALESCE(product_data->>'name', name),
       comments = COALESCE(product_data->>'comments', comments),
@@ -43,14 +40,11 @@ BEGIN
       updated_at = CURRENT_TIMESTAMP
     WHERE id = p_product_id;
 
-    -- 2. Gestionar archivos
     IF product_data ? 'files' THEN
-      -- Obtener IDs de archivos existentes
-      SELECT array_agg(f.id) INTO existing_file_ids 
+      SELECT array_agg(f.id) INTO existing_file_ids
       FROM file f
       WHERE f.object_id = p_product_id AND f.file_type_id = 2;
 
-      -- Extraer IDs de archivos del JSON
       IF jsonb_array_length(product_data->'files') > 0 THEN
         FOR file_record IN SELECT * FROM jsonb_array_elements(product_data->'files')
         LOOP
@@ -60,19 +54,16 @@ BEGIN
         END LOOP;
       END IF;
 
-      -- Eliminar archivos que no están en el nuevo conjunto
       IF existing_file_ids IS NOT NULL THEN
-        DELETE FROM file 
-        WHERE object_id = p_product_id 
-          AND file_type_id = 2 
+        DELETE FROM file
+        WHERE object_id = p_product_id
+          AND file_type_id = 2
           AND (new_file_ids IS NULL OR id <> ALL(new_file_ids));
       END IF;
 
-      -- Insertar o actualizar archivos
       IF jsonb_array_length(product_data->'files') > 0 THEN
         FOR file_record IN SELECT * FROM jsonb_array_elements(product_data->'files')
         LOOP
-          -- Si tiene ID, actualizar
           IF file_record ? 'id' THEN
             UPDATE file SET
               name = COALESCE(file_record->>'name', name),
@@ -82,7 +73,6 @@ BEGIN
               updated_at = CURRENT_TIMESTAMP
             WHERE id = (file_record->>'id')::INT AND object_id = p_product_id;
           ELSE
-            -- Si no tiene ID, crear nuevo
             INSERT INTO file (
               name,
               mime_type,
@@ -96,21 +86,18 @@ BEGIN
               file_record->>'storagePath',
               COALESCE((file_record->>'orderId')::INT, 1),
               p_product_id,
-              2  -- Asumiendo que 1 es el ID para el tipo de archivo de producto
+              2
             );
           END IF;
         END LOOP;
       END IF;
     END IF;
 
-    -- 3. Gestionar relaciones con proveedores
     IF product_data ? 'providers' THEN
-      -- Obtener IDs de relaciones proveedor-producto existentes
-      SELECT array_agg(pp.provider_id) INTO existing_provider_ids 
+      SELECT array_agg(pp.provider_id) INTO existing_provider_ids
       FROM provider_product pp
       WHERE pp.product_id = p_product_id;
 
-      -- Extraer IDs de proveedores del JSON
       IF jsonb_array_length(product_data->'providers') > 0 THEN
         FOR provider_record IN SELECT * FROM jsonb_array_elements(product_data->'providers')
         LOOP
@@ -120,26 +107,21 @@ BEGIN
         END LOOP;
       END IF;
 
-      -- Eliminar relaciones que no están en el nuevo conjunto
       IF existing_provider_ids IS NOT NULL THEN
-        DELETE FROM provider_product 
-        WHERE product_id = p_product_id 
+        DELETE FROM provider_product
+        WHERE product_id = p_product_id
           AND (new_provider_ids IS NULL OR provider_id <> ALL(new_provider_ids));
       END IF;
 
-      -- Insertar o actualizar relaciones con proveedores
       IF jsonb_array_length(product_data->'providers') > 0 THEN
         FOR provider_record IN SELECT * FROM jsonb_array_elements(product_data->'providers')
         LOOP
-          -- Verificar si ya existe la relación
           IF EXISTS (
-            SELECT 1 FROM provider_product 
-            WHERE product_id = p_product_id 
+            SELECT 1 FROM provider_product
+            WHERE product_id = p_product_id
               AND provider_id = (provider_record->>'providerId')::INT
           ) THEN
-            -- Si existe la relación, actualizar
             IF provider_record ? 'price' AND provider_record->'price' ? 'description' AND provider_record->'price' ? 'cost' THEN
-              -- Crear un nuevo precio para el proveedor
               INSERT INTO price (
                 description,
                 cost
@@ -149,25 +131,21 @@ BEGIN
               )
               RETURNING id INTO provider_price_id;
 
-              -- Actualizar la relación con el nuevo precio
               UPDATE provider_product SET
                 price_id = provider_price_id,
                 num_series = COALESCE(provider_record->>'numSeries', num_series),
                 updated_at = CURRENT_TIMESTAMP
-              WHERE product_id = p_product_id 
+              WHERE product_id = p_product_id
                 AND provider_id = (provider_record->>'providerId')::INT;
             ELSE
-              -- Actualizar solo el numSeries si no hay nuevo precio
               UPDATE provider_product SET
                 num_series = COALESCE(provider_record->>'numSeries', num_series),
                 updated_at = CURRENT_TIMESTAMP
-              WHERE product_id = p_product_id 
+              WHERE product_id = p_product_id
                 AND provider_id = (provider_record->>'providerId')::INT;
             END IF;
           ELSE
-            -- Si no existe la relación, crear nueva
             IF provider_record ? 'price' AND provider_record->'price' ? 'description' AND provider_record->'price' ? 'cost' THEN
-              -- Crear un nuevo precio para el proveedor
               INSERT INTO price (
                 description,
                 cost
@@ -177,11 +155,9 @@ BEGIN
               )
               RETURNING id INTO provider_price_id;
             ELSE
-              -- Si no hay información de precio, usar el priceId proporcionado
               provider_price_id := (provider_record->>'priceId')::INT;
             END IF;
 
-            -- Insertar la nueva relación
             INSERT INTO provider_product (
               product_id,
               provider_id,
@@ -198,14 +174,11 @@ BEGIN
       END IF;
     END IF;
 
-    -- 4. Gestionar precios del producto
     IF product_data ? 'prices' THEN
-      -- Obtener IDs de precios existentes
-      SELECT array_agg(pp.price_id) INTO existing_price_ids 
+      SELECT array_agg(pp.price_id) INTO existing_price_ids
       FROM product_price pp
       WHERE pp.product_id = p_product_id;
 
-      -- Extraer IDs de precios del JSON
       IF jsonb_array_length(product_data->'prices') > 0 THEN
         FOR price_record IN SELECT * FROM jsonb_array_elements(product_data->'prices')
         LOOP
@@ -215,25 +188,21 @@ BEGIN
         END LOOP;
       END IF;
 
-      -- Eliminar relaciones de precios que no están en el nuevo conjunto
       IF existing_price_ids IS NOT NULL THEN
-        DELETE FROM product_price 
-        WHERE product_id = p_product_id 
+        DELETE FROM product_price
+        WHERE product_id = p_product_id
           AND (new_price_ids IS NULL OR price_id <> ALL(new_price_ids));
       END IF;
 
-      -- Insertar nuevos precios
       IF jsonb_array_length(product_data->'prices') > 0 THEN
         FOR price_record IN SELECT * FROM jsonb_array_elements(product_data->'prices')
         LOOP
-          -- Si tiene priceId, verificar si ya existe la relación
           IF price_record ? 'priceId' THEN
             IF NOT EXISTS (
-              SELECT 1 FROM product_price 
-              WHERE product_id = p_product_id 
+              SELECT 1 FROM product_price
+              WHERE product_id = p_product_id
                 AND price_id = (price_record->>'priceId')::INT
             ) THEN
-              -- Si no existe, crear la relación
               INSERT INTO product_price (
                 product_id,
                 price_id
@@ -243,7 +212,6 @@ BEGIN
               );
             END IF;
           ELSIF price_record ? 'price' AND price_record->'price' ? 'description' AND price_record->'price' ? 'cost' THEN
-            -- Crear un nuevo precio
             INSERT INTO price (
               description,
               cost
@@ -253,7 +221,6 @@ BEGIN
             )
             RETURNING id INTO new_price_id;
 
-            -- Insertar la relación producto-precio
             INSERT INTO product_price (
               product_id,
               price_id
@@ -266,14 +233,10 @@ BEGIN
       END IF;
     END IF;
 
-    -- 5. Gestionar relaciones con modelos de carro
     IF product_data ? 'carModels' THEN
-      -- Eliminar todas las relaciones existentes con modelos de carro
-      -- (Es más simple recrearlas que compararlas una por una debido a los años)
-      DELETE FROM product_car_model 
+      DELETE FROM product_car_model
       WHERE product_id = p_product_id;
 
-      -- Insertar nuevas relaciones con modelos de carro
       IF jsonb_array_length(product_data->'carModels') > 0 THEN
         FOR car_model_record IN SELECT * FROM jsonb_array_elements(product_data->'carModels')
         LOOP
@@ -292,7 +255,6 @@ BEGIN
       END IF;
     END IF;
 
-    -- 6. Gestionar relaciones con componentes por reemplazo completo
     IF product_data ? 'components' THEN
       IF jsonb_array_length(product_data->'components') > 0 THEN
         FOR component_record IN SELECT * FROM jsonb_array_elements(product_data->'components')
@@ -331,7 +293,6 @@ BEGIN
       END IF;
     END IF;
 
-    -- Obtener el producto actualizado con todas sus relaciones
     SELECT jsonb_build_object(
       'id', p.id,
       'name', p.name,
@@ -459,7 +420,6 @@ BEGIN
     RETURN result;
   EXCEPTION
     WHEN OTHERS THEN
-      -- En caso de error, hacer rollback y devolver el error
       RAISE;
   END;
 END;
