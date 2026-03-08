@@ -64,6 +64,10 @@
       "value": "2"
     },
     {
+      "key": "productTypeIdAccessory",
+      "value": "3"
+    },
+    {
       "key": "roleIdAdmin",
       "value": "1"
     },
@@ -105,6 +109,26 @@
     },
     {
       "key": "componentProductIdUpdated",
+      "value": ""
+    },
+    {
+      "key": "accessoryProductIdCreated",
+      "value": ""
+    },
+    {
+      "key": "productCategoryIdCreated",
+      "value": ""
+    },
+    {
+      "key": "accessoryProductFileIdPrimary",
+      "value": ""
+    },
+    {
+      "key": "accessoryProductFileIdSecondary",
+      "value": ""
+    },
+    {
+      "key": "accessoryProductIdNoModelCreated",
       "value": ""
     },
     {
@@ -217,6 +241,46 @@
     },
     {
       "key": "productFileNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "productCategoryNameCreate",
+      "value": ""
+    },
+    {
+      "key": "productCategoryNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "accessoryNameCreate",
+      "value": ""
+    },
+    {
+      "key": "accessoryNameUpdate",
+      "value": ""
+    },
+    {
+      "key": "accessoryFilePrimaryCreate",
+      "value": ""
+    },
+    {
+      "key": "accessoryFileSecondaryCreate",
+      "value": ""
+    },
+    {
+      "key": "accessoryFilePrimaryUpdate",
+      "value": ""
+    },
+    {
+      "key": "accessoryFileSecondaryUpdate",
+      "value": ""
+    },
+    {
+      "key": "accessoryNameNoModelCreate",
+      "value": ""
+    },
+    {
+      "key": "accessoryFileNoModelCreate",
       "value": ""
     },
     {
@@ -777,6 +841,260 @@
     {
       "name": "07 Products Flow",
       "item": [
+        {
+          "name": "Accessories Example Flow",
+          "item": [
+            {
+              "name": "POST /product-categories",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('productCategoryNameCreate', `POSTMAN ACCESSORY CATEGORY ${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('productCategoryIdCreated', String(body.id));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{productCategoryNameCreate}}\",\n  \"description\": \"Accessory category created from Postman flow\",\n  \"productTypeId\": {{productTypeIdAccessory}},\n  \"orderId\": 1,\n  \"active\": true\n}"
+                },
+                "url": "{{baseUrl}}/product-categories"
+              }
+            },
+            {
+              "name": "GET /product-categories?id={{productCategoryIdCreated}}",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/product-categories?id={{productCategoryIdCreated}}"
+              }
+            },
+            {
+              "name": "GET /product-categories?productTypeId={{productTypeIdAccessory}}",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/product-categories?productTypeId={{productTypeIdAccessory}}"
+              }
+            },
+            {
+              "name": "POST /products accessory with model",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('accessoryNameCreate', `POSTMAN ACCESSORY ${suffix}`);",
+                      "pm.collectionVariables.set('accessoryFilePrimaryCreate', `postman-accessory-primary-${suffix}`);",
+                      "pm.collectionVariables.set('accessoryFileSecondaryCreate', `postman-accessory-secondary-${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('accessoryProductIdCreated', String(body.id));",
+                      "if (body.files && body.files.length > 0) {",
+                      "  pm.collectionVariables.set('accessoryProductFileIdPrimary', String(body.files[0].id));",
+                      "}",
+                      "if (body.files && body.files.length > 1) {",
+                      "  pm.collectionVariables.set('accessoryProductFileIdSecondary', String(body.files[1].id));",
+                      "}"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{accessoryNameCreate}}\",\n  \"comments\": \"Accessory created from Postman flow with model relation\",\n  \"productTypeId\": {{productTypeIdAccessory}},\n  \"productCategoryId\": {{productCategoryIdCreated}},\n  \"files\": [\n    {\n      \"name\": \"{{accessoryFilePrimaryCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{accessoryFilePrimaryCreate}}.png\",\n      \"orderId\": 1\n    },\n    {\n      \"name\": \"{{accessoryFileSecondaryCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{accessoryFileSecondaryCreate}}.png\",\n      \"orderId\": 2\n    }\n  ],\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2010,\n      \"lastYear\": 2012\n    }\n  ],\n  \"dpi\": \"IGNORED-ACCESSORY-DPI\",\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"IGNORED-ACCESSORY-SERIES\",\n      \"price\": {\n        \"description\": \"Should be ignored for accessory\",\n        \"cost\": \"$10.00\"\n      }\n    }\n  ],\n  \"productPrices\": [\n    {\n      \"price\": {\n        \"description\": \"Should be ignored for accessory\",\n        \"cost\": \"$20.00\"\n      }\n    }\n  ],\n  \"components\": [\n    {\n      \"componentProductId\": 999999\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products"
+              }
+            },
+            {
+              "name": "GET /products?id={{accessoryProductIdCreated}} accessory with model",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdCreated}}"
+              }
+            },
+            {
+              "name": "POST /products accessory without model",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('accessoryNameNoModelCreate', `POSTMAN ACCESSORY NO MODEL ${suffix}`);",
+                      "pm.collectionVariables.set('accessoryFileNoModelCreate', `postman-accessory-no-model-${suffix}`);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const body = pm.response.json();",
+                      "pm.collectionVariables.set('accessoryProductIdNoModelCreated', String(body.id));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{accessoryNameNoModelCreate}}\",\n  \"comments\": \"Accessory created from Postman flow without model relation\",\n  \"productTypeId\": {{productTypeIdAccessory}},\n  \"productCategoryId\": {{productCategoryIdCreated}},\n  \"files\": [\n    {\n      \"name\": \"{{accessoryFileNoModelCreate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{accessoryFileNoModelCreate}}.png\",\n      \"orderId\": 1\n    }\n  ]\n}"
+                },
+                "url": "{{baseUrl}}/products"
+              }
+            },
+            {
+              "name": "GET /products?id={{accessoryProductIdNoModelCreated}} accessory without model",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdNoModelCreated}}"
+              }
+            },
+            {
+              "name": "GET /products accessory by category",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?productTypeId={{productTypeIdAccessory}}&productCategoryId={{productCategoryIdCreated}}"
+              }
+            },
+            {
+              "name": "PUT /product-categories?id={{productCategoryIdCreated}}",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('productCategoryNameUpdate', `POSTMAN ACCESSORY CATEGORY UPDATED ${suffix}`);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{productCategoryNameUpdate}}\",\n  \"description\": \"Accessory category updated from Postman flow\",\n  \"productTypeId\": {{productTypeIdAccessory}},\n  \"orderId\": 2,\n  \"active\": true\n}"
+                },
+                "url": "{{baseUrl}}/product-categories?id={{productCategoryIdCreated}}"
+              }
+            },
+            {
+              "name": "PUT /products?id={{accessoryProductIdCreated}} accessory",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const suffix = Date.now().toString();",
+                      "pm.collectionVariables.set('accessoryNameUpdate', `POSTMAN ACCESSORY UPDATED ${suffix}`);",
+                      "pm.collectionVariables.set('accessoryFilePrimaryUpdate', `postman-accessory-primary-updated-${suffix}`);",
+                      "pm.collectionVariables.set('accessoryFileSecondaryUpdate', `postman-accessory-secondary-updated-${suffix}`);"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"{{accessoryNameUpdate}}\",\n  \"comments\": \"Accessory updated from Postman flow\",\n  \"productTypeId\": {{productTypeIdAccessory}},\n  \"productCategoryId\": {{productCategoryIdCreated}},\n  \"productCarModels\": [\n    {\n      \"carModelId\": {{modelIdSeed}},\n      \"initialYear\": 2015,\n      \"lastYear\": 2020\n    }\n  ],\n  \"files\": [\n    {\n      \"id\": {{accessoryProductFileIdPrimary}},\n      \"name\": \"{{accessoryFilePrimaryUpdate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{accessoryFilePrimaryUpdate}}.png\",\n      \"orderId\": 1\n    },\n    {\n      \"id\": {{accessoryProductFileIdSecondary}},\n      \"name\": \"{{accessoryFileSecondaryUpdate}}.png\",\n      \"mimeType\": \"image/png\",\n      \"storagePath\": \"products/images/{{accessoryFileSecondaryUpdate}}.png\",\n      \"orderId\": 2\n    }\n  ],\n  \"dpi\": \"IGNORED-ACCESSORY-DPI-UPDATED\",\n  \"productProviders\": [\n    {\n      \"providerId\": {{providerIdSeed}},\n      \"numSeries\": \"IGNORED-ACCESSORY-SERIES-UPDATED\"\n    }\n  ],\n  \"components\": []\n}"
+                },
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdCreated}}"
+              }
+            },
+            {
+              "name": "GET /products?id={{accessoryProductIdCreated}} accessory with model after update",
+              "request": {
+                "method": "GET",
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdCreated}}"
+              }
+            },
+            {
+              "name": "DELETE /products?id={{accessoryProductIdCreated}} accessory with model",
+              "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdCreated}}"
+              }
+            },
+            {
+              "name": "DELETE /products?id={{accessoryProductIdNoModelCreated}} accessory without model",
+              "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/products?id={{accessoryProductIdNoModelCreated}}"
+              }
+            },
+            {
+              "name": "DELETE /product-categories?id={{productCategoryIdCreated}}",
+              "request": {
+                "method": "DELETE",
+                "url": "{{baseUrl}}/product-categories?id={{productCategoryIdCreated}}"
+              }
+            }
+          ]
+        },
         {
           "name": "Components Example Flow",
           "item": [

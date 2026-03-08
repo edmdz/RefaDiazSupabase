@@ -20,7 +20,7 @@ interface FoundIds {
  * @returns Un objeto con las entidades extraídas.
  */
 function parseQuery(query: string): ParsedQuery {
-  console.log(query)
+  console.log(query);
   const dpiRegex = /\b(DPI\d+)\b/gi;
   const yearRegex = /\b(\d{4})\b/g;
 
@@ -57,7 +57,7 @@ async function findModelAndBrandIds(tokens: string[]): Promise<FoundIds> {
       .ilike("name", `%${token}%`)
       .eq("active", true);
     if (modelData && modelData.length > 0) {
-      modelIdsFromTokens.push(...modelData.map(m => m.id));
+      modelIdsFromTokens.push(...modelData.map((m) => m.id));
     }
 
     // 2. Buscar como marca
@@ -67,11 +67,11 @@ async function findModelAndBrandIds(tokens: string[]): Promise<FoundIds> {
       .ilike("name", `%${token}%`)
       .eq("active", true);
     if (brandData && brandData.length > 0) {
-      brandIdsFromTokens.push(...brandData.map(b => b.id));
+      brandIdsFromTokens.push(...brandData.map((b) => b.id));
     }
   }
-  console.log('modelos', modelIdsFromTokens)
-  console.log('marcas', brandIdsFromTokens)
+  console.log("modelos", modelIdsFromTokens);
+  console.log("marcas", brandIdsFromTokens);
 
   // --- LÓGICA CONDICIONAL PARA FILTRAR ---
 
@@ -83,8 +83,10 @@ async function findModelAndBrandIds(tokens: string[]): Promise<FoundIds> {
       .select("id")
       .in("id", modelIdsFromTokens)
       .in("brand_id", brandIdsFromTokens);
-    
-    const finalModelIds = filteredModelData ? filteredModelData.map(m => m.id) : [];
+
+    const finalModelIds = filteredModelData
+      ? filteredModelData.map((m) => m.id)
+      : [];
     return { modelIds: [...new Set(finalModelIds)], brandIds: [] }; // Solo necesitamos devolver los modelIds filtrados
   }
 
@@ -96,15 +98,15 @@ async function findModelAndBrandIds(tokens: string[]): Promise<FoundIds> {
       .select("id")
       .in("brand_id", brandIdsFromTokens);
 
-    const finalModelIds = modelsOfBrands ? modelsOfBrands.map(m => m.id) : [];
+    const finalModelIds = modelsOfBrands ? modelsOfBrands.map((m) => m.id) : [];
     return { modelIds: [...new Set(finalModelIds)], brandIds: [] };
   }
-  
+
   // Caso 3: El usuario solo especificó modelos (ej. "Lobo")
   // Usamos directamente los modelos encontrados.
-  return { 
-    modelIds: [...new Set(modelIdsFromTokens)], 
-    brandIds: [] 
+  return {
+    modelIds: [...new Set(modelIdsFromTokens)],
+    brandIds: [],
   };
 }
 
@@ -117,12 +119,12 @@ async function findModelAndBrandIds(tokens: string[]): Promise<FoundIds> {
  * @returns Una lista de productos que coinciden.
  */
 async function executeDynamicSearch(
-  productTypeId: string, 
+  productTypeId: string,
   { modelIds }: FoundIds, // Ya no necesitamos brandIds aquí
-  year: number | null
+  year: number | null,
 ) {
-  console.log('search', modelIds, year)
-  if ((modelIds.length == 0) && !year) return []
+  console.log("search", modelIds, year);
+  if ((modelIds.length == 0) && !year) return [];
 
   let query = supabase
     .from("product")
@@ -154,7 +156,7 @@ async function executeDynamicSearch(
   }
 
   // El filtro por Marca ya no es necesario aquí, está implícito en la lista de modelIds.
-  
+
   // Filtro por Año (sin cambios, ya estaba correcto)
   if (year) {
     query = query.lte("product_car_model.initial_year", year);
@@ -179,7 +181,10 @@ async function executeDynamicSearch(
  * @param productTypeId - El ID del tipo de producto.
  * @returns La respuesta HTTP con los resultados de la búsqueda.
  */
-export async function handleSmartSearch(q: string, productTypeId: string): Promise<Response> {
+export async function handleSmartSearch(
+  q: string,
+  productTypeId: string,
+): Promise<Response> {
   try {
     const { dpis, year, tokens } = parseQuery(q);
 
@@ -192,7 +197,7 @@ export async function handleSmartSearch(q: string, productTypeId: string): Promi
         .eq("product_type_id", productTypeId);
 
       if (error) throw new Error(error.message);
-      
+
       const camelCaseData = convertToCamelCase(data);
       return new Response(JSON.stringify(camelCaseData), {
         status: 200,
@@ -202,21 +207,24 @@ export async function handleSmartSearch(q: string, productTypeId: string): Promi
 
     // Caso 2: Búsqueda jerárquica por tokens y año
     const { modelIds, brandIds } = await findModelAndBrandIds(tokens);
-    
-    const searchResults = await executeDynamicSearch(productTypeId, { modelIds, brandIds }, year);
+
+    const searchResults = await executeDynamicSearch(productTypeId, {
+      modelIds,
+      brandIds,
+    }, year);
 
     // Procesar y limpiar los datos como en la función original
-    const processedData = searchResults?.map(product => ({
+    const processedData = searchResults?.map((product) => ({
       ...product,
       productCarModels: product.product_car_model?.map((pcm: any) => ({
         carModelId: pcm.car_model_id,
         initialYear: pcm.initial_year,
         lastYear: pcm.last_year,
-        carModel: pcm.car_model
-      })) || []
+        carModel: pcm.car_model,
+      })) || [],
     }));
 
-    const cleanedData = processedData?.map(product => {
+    const cleanedData = processedData?.map((product) => {
       const { product_car_model, ...rest } = product;
       return rest;
     });
@@ -227,11 +235,12 @@ export async function handleSmartSearch(q: string, productTypeId: string): Promi
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
-
-  } catch (err) {
+  } catch (err: any) {
     return new Response(
-      JSON.stringify({ error: err.message || "Error al procesar la búsqueda inteligente" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({
+        error: err.message || "Error al procesar la búsqueda inteligente",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }
 }

@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-03-08
+
+### Accessories And Product Categories
+
+Implemented accessory support on top of `product`, including category management, accessory-specific search behavior, and compatibility with vehicle models without year ranges.
+
+High-level changes:
+- Added `product_category` and linked it to `product` through `product_category_id`.
+- Ensured `RADIATOR`, `TAPA`, and `ACCESORIO` are seeded in `product_type` through migrations.
+- Seeded default accessory categories: `Tubos`, `Mangueras`, and `Otros`.
+- Added the `product-categories` edge function with list, create, update, and soft-delete behavior.
+- Extended `GET /products` and `GET /products?id=...` to return `productCategory`.
+- Extended `POST /products` and `PUT /products?id=...` to accept `productCategoryId`.
+- Kept accessory payloads minimal for prices/providers/components while allowing `productCarModels`.
+- Enabled accessory-to-model associations without requiring `initialYear` or `lastYear`.
+- Added accessory smart search separated from radiator smart search.
+- Kept `q` as an exclusive search mode and made accessory search token-based for:
+  - product name tokens
+  - model tokens
+  - brand tokens
+- Added Postman examples for:
+  - accessory with model association
+  - accessory without model association
+  - accessory category CRUD
+
+Implementation notes:
+- Accessory compatibility is stored in `product_car_model`.
+- For accessories, `initial_year` and `last_year` are persisted as `NULL`.
+- Accessory smart search is intentionally separate from the radiator search service to avoid mixing DPI/year logic with accessory name/model/brand semantics.
+
 ## 2026-03-06
 
 ### Product Components For Radiators

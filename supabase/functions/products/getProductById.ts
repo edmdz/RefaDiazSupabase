@@ -14,7 +14,7 @@ export async function handleGetProductById(req: Request): Promise<Response> {
     if (!id) {
       return new Response(
         JSON.stringify({ error: "Falta el parámetro 'id' en la URL" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -23,6 +23,14 @@ export async function handleGetProductById(req: Request): Promise<Response> {
       .select(`
         *,
         product_type(id, name),
+        product_category:product_category_id(
+          id,
+          name,
+          description,
+          product_type_id,
+          order_id,
+          active
+        ),
         car_models:product_car_model(
           car_model_id,
           initial_year,
@@ -53,10 +61,10 @@ export async function handleGetProductById(req: Request): Promise<Response> {
     if (error) {
       return new Response(
         JSON.stringify({ error: error.message }),
-        { 
+        {
           status: error.code === "PGRST116" ? 404 : 500, // 404 si no existe
-          headers: { "Content-Type": "application/json" } 
-        }
+          headers: { "Content-Type": "application/json" },
+        },
       );
     }
 
@@ -83,37 +91,38 @@ export async function handleGetProductById(req: Request): Promise<Response> {
     if (filesError) {
       return new Response(
         JSON.stringify({ error: filesError.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
     // Obtener componentes asociados al producto.
     // Se resuelven en una segunda consulta para mantener el cambio acotado
     // y no depender de nombres de relaciones anidadas en PostgREST.
-    const { data: componentRelations, error: componentRelationsError } = await supabase
-      .from("product_component")
-      .select(`
+    const { data: componentRelations, error: componentRelationsError } =
+      await supabase
+        .from("product_component")
+        .select(`
         product_id,
         component_product_id,
         active,
         created_at
       `)
-      .eq("product_id", id)
-      .order("created_at", { ascending: true });
+        .eq("product_id", id)
+        .order("created_at", { ascending: true });
 
     if (componentRelationsError) {
       return new Response(
         JSON.stringify({ error: componentRelationsError.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
 
     const activeComponentRelations = (componentRelations || []).filter(
-      relation => relation.active
+      (relation) => relation.active,
     );
 
     const componentProductIds = activeComponentRelations.map(
-      relation => relation.component_product_id
+      (relation) => relation.component_product_id,
     );
 
     let components: Array<{
@@ -128,41 +137,44 @@ export async function handleGetProductById(req: Request): Promise<Response> {
     }> = [];
 
     if (componentProductIds.length > 0) {
-      const { data: componentProducts, error: componentProductsError } = await supabase
-        .from("product")
-        .select(`
+      const { data: componentProducts, error: componentProductsError } =
+        await supabase
+          .from("product")
+          .select(`
           id,
           name,
           dpi,
           product_type_id,
           active
         `)
-        .in("id", componentProductIds)
-        .eq("active", true);
+          .in("id", componentProductIds)
+          .eq("active", true);
 
       if (componentProductsError) {
         return new Response(
           JSON.stringify({ error: componentProductsError.message }),
-          { status: 500, headers: { "Content-Type": "application/json" } }
+          { status: 500, headers: { "Content-Type": "application/json" } },
         );
       }
 
       const componentProductsById = new Map(
-        (componentProducts || []).map(componentProduct => [
+        (componentProducts || []).map((componentProduct) => [
           componentProduct.id,
           {
             id: componentProduct.id,
             name: componentProduct.name,
             dpi: componentProduct.dpi,
             productTypeId: componentProduct.product_type_id,
-            active: componentProduct.active
-          }
-        ])
+            active: componentProduct.active,
+          },
+        ]),
       );
 
       components = activeComponentRelations
-        .map(relation => {
-          const componentProduct = componentProductsById.get(relation.component_product_id);
+        .map((relation) => {
+          const componentProduct = componentProductsById.get(
+            relation.component_product_id,
+          );
 
           if (!componentProduct) {
             return null;
@@ -170,7 +182,7 @@ export async function handleGetProductById(req: Request): Promise<Response> {
 
           return {
             componentProductId: relation.component_product_id,
-            componentProduct
+            componentProduct,
           };
         })
         .filter(
@@ -183,7 +195,7 @@ export async function handleGetProductById(req: Request): Promise<Response> {
               productTypeId: number;
               active: boolean | null;
             };
-          } => component !== null
+          } => component !== null,
         );
     }
 
@@ -193,8 +205,9 @@ export async function handleGetProductById(req: Request): Promise<Response> {
       productCarModels: data.car_models,
       productPrices: data.prices,
       productProviders: data.providers,
+      productCategory: data.product_category,
       files: files,
-      components
+      components,
     };
 
     // Convertir a camelCase antes de enviar la respuesta
@@ -202,12 +215,12 @@ export async function handleGetProductById(req: Request): Promise<Response> {
 
     return new Response(
       JSON.stringify(camelCaseData),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: "Error al procesar la solicitud" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 }

@@ -5,7 +5,7 @@ import { supabase } from "./config.ts";
 /**
  * POST /products
  * Crea un nuevo producto en la tabla "product" con todas sus relaciones.
- * 
+ *
  * Payload esperado:
  * {
  *   "name": "Nombre del Producto",
@@ -13,6 +13,7 @@ import { supabase } from "./config.ts";
  *   "stockCount": 10,
  *   "dpi": "222",
  *   "productTypeId": 1,
+ *   "productCategoryId": 3,
  *   "brand": { "file": {} },
  *   "files": [
  *     {
@@ -26,17 +27,17 @@ import { supabase } from "./config.ts";
  *     {
  *       "providerId": 3,
  *       "numSeries": "DPI1214",
- *       "price": { 
- *         "description": "Precio de compra", 
- *         "cost": "$2,100.00" 
+ *       "price": {
+ *         "description": "Precio de compra",
+ *         "cost": "$2,100.00"
  *       }
  *     }
  *   ],
  *   "prices": [
  *     {
- *       "price": { 
- *         "description": "RADIADOR NUEVO SUELTO", 
- *         "cost": "$3,500.00" 
+ *       "price": {
+ *         "description": "RADIADOR NUEVO SUELTO",
+ *         "cost": "$3,500.00"
  *       }
  *     }
  *   ],
@@ -58,7 +59,7 @@ import { supabase } from "./config.ts";
  *     }
  *   ]
  * }
- * 
+ *
  * Nota: Los precios y archivos se crean automáticamente, no es necesario proporcionar IDs para ellos.
  * Si se proporciona un priceId existente, se utilizará ese precio en lugar de crear uno nuevo.
  */
@@ -68,7 +69,7 @@ export async function handlePostProduct(req: Request): Promise<Response> {
     if (!contentType || !contentType.includes("application/json")) {
       return new Response(
         JSON.stringify({ error: "El Content-Type debe ser application/json" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -80,8 +81,10 @@ export async function handlePostProduct(req: Request): Promise<Response> {
         new Set(
           (body.components || [])
             .map((component: any) => component.componentProductId)
-            .filter((componentProductId: any) => componentProductId !== undefined && componentProductId !== null)
-        )
+            .filter((componentProductId: any) =>
+              componentProductId !== undefined && componentProductId !== null
+            ),
+        ),
       );
 
       return {
@@ -90,54 +93,57 @@ export async function handlePostProduct(req: Request): Promise<Response> {
         stockCount: body.stockCount,
         dpi: body.dpi,
         productTypeId: body.productTypeId,
+        productCategoryId: body.productCategoryId ?? null,
         files: body.files || [],
         carModels: (body.productCarModels || []).map((pcm: any) => ({
           carModelId: pcm.carModelId,
           initialYear: pcm.initialYear,
-          lastYear: pcm.lastYear
+          lastYear: pcm.lastYear,
         })),
         prices: body.productPrices || [],
         providers: body.productProviders || [],
-        components: uniqueComponentIds.map(componentProductId => ({
-          componentProductId
-        }))
+        components: uniqueComponentIds.map((componentProductId) => ({
+          componentProductId,
+        })),
       };
     }
 
     const mappedProductData = mapProductRequestBody(productData);
-    console.log('mappedProductData', mappedProductData)
-    
+    console.log("mappedProductData", mappedProductData);
+
     // Validar que el cuerpo tenga los campos requeridos
     if (!productData.name || !productData.productTypeId) {
       return new Response(
-        JSON.stringify({ error: "Los campos 'name' y 'productTypeId' son obligatorios" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Los campos 'name' y 'productTypeId' son obligatorios",
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
-    
+
     // Llamar al procedimiento almacenado para crear el producto con todas sus relaciones
     const { data, error } = await supabase.rpc(
-      'create_product_with_relations',
-      { product_data: mappedProductData }
+      "create_product_with_relations",
+      { product_data: mappedProductData },
     );
-    
+
     if (error) {
       console.error("Error al crear el producto:", error);
       return new Response(
         JSON.stringify({ error: error.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
-    
+
     return new Response(
       JSON.stringify(data),
-      { status: 201, headers: { "Content-Type": "application/json" } }
+      { status: 201, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("Error al procesar la solicitud:", err);
     return new Response(
       JSON.stringify({ error: "Error al procesar la solicitud" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
-} 
+}

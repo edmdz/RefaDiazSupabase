@@ -1,6 +1,3 @@
-
-import { PostgrestFilterBuilder } from "https://esm.sh/@supabase/postgrest-js@1.8.0";
-
 /**
  * Interfaz para los parámetros de filtro de productos.
  */
@@ -18,19 +15,25 @@ export interface ProductFilterParams {
  * @returns La consulta de Supabase con los filtros aplicados.
  */
 export function buildProductQuery(
-  query: PostgrestFilterBuilder<any, any, any>,
-  params: ProductFilterParams
-): PostgrestFilterBuilder<any, any, any> {
+  query: any,
+  params: ProductFilterParams,
+): any {
   let filteredQuery = query;
 
   // Filtrar por brandId
   if (params.brandId) {
-    filteredQuery = filteredQuery.eq("product_car_model.car_model.brand_id", params.brandId);
+    filteredQuery = filteredQuery.eq(
+      "product_car_model.car_model.brand_id",
+      params.brandId,
+    );
   }
 
   // Filtrar por modelId
   if (params.modelId) {
-    filteredQuery = filteredQuery.eq("product_car_model.car_model_id", params.modelId);
+    filteredQuery = filteredQuery.eq(
+      "product_car_model.car_model_id",
+      params.modelId,
+    );
   }
 
   // Filtrar por modelYear
@@ -43,6 +46,6 @@ export function buildProductQuery(
     }
   }
 
-  console.log("filteredQuery", filteredQuery)
+  console.log("filteredQuery", filteredQuery);
   return filteredQuery;
 }

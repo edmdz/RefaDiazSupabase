@@ -1160,7 +1160,8 @@ INSERT INTO "public"."car_model" ("active", "created_at", "updated_at", "id", "n
 
 INSERT INTO "public"."file_type" ("active", "created_at", "updated_at", "id", "name") VALUES
 	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 1, 'Brand Image'),
-	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 2, 'Product Image');
+	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 2, 'Product Image')
+ON CONFLICT (id) DO NOTHING;
 
 
 --
@@ -1278,7 +1279,8 @@ INSERT INTO "public"."file" ("active", "created_at", "updated_at", "id", "name",
 	(true, '2025-10-08 21:17:57.112914', '2025-10-08 21:17:57.112914', 120, '6b0154cc-eb63-4b18-9772-a987ebb8983b.jpg', 'image/jpeg', 'products/images/6b0154cc-eb63-4b18-9772-a987ebb8983b.jpg', 29, 1, 2),
 	(true, '2025-10-08 21:20:33.494272', '2025-10-08 23:47:10.195172', 121, 'a7f01838-0d82-49cd-bb17-8196f38a1833.jpg', 'image/jpeg', 'products/images/a7f01838-0d82-49cd-bb17-8196f38a1833.jpg', 30, 1, 2),
 	(true, '2025-06-30 23:28:16.287191', '2025-10-08 23:47:51.22002', 92, '1342e57c-a5ef-4f2f-b84a-17dd1ba78d3d', 'image/jpeg', 'products/images/1342e57c-a5ef-4f2f-b84a-17dd1ba78d3d', 14, 2, 2),
-	(true, '2025-06-30 23:34:01.853737', '2025-10-08 23:47:51.22002', 93, '211dedfa-849c-4de3-96dd-8bf94fc209d1', 'image/jpeg', 'products/images/211dedfa-849c-4de3-96dd-8bf94fc209d1', 14, 3, 2);
+	(true, '2025-06-30 23:34:01.853737', '2025-10-08 23:47:51.22002', 93, '211dedfa-849c-4de3-96dd-8bf94fc209d1', 'image/jpeg', 'products/images/211dedfa-849c-4de3-96dd-8bf94fc209d1', 14, 3, 2)
+ON CONFLICT (id) DO NOTHING;
 
 
 --
@@ -1521,7 +1523,8 @@ INSERT INTO "public"."price" ("active", "created_at", "updated_at", "id", "cost"
 --
 
 INSERT INTO "public"."product_type" ("active", "created_at", "updated_at", "id", "name") VALUES
-	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 1, 'RADIATOR');
+	(true, '2024-08-27 04:18:03.643261', '2024-08-27 04:18:03.643261', 1, 'RADIATOR')
+ON CONFLICT (id) DO NOTHING;
 
 
 --

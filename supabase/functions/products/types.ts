@@ -7,6 +7,7 @@ export interface ProductRequestBody {
   stockCount?: number;
   dpi?: string;
   productTypeId: number;
+  productCategoryId?: number | null;
   parentProductId?: number;
   active?: boolean;
   [key: string]: any;
@@ -19,7 +20,8 @@ export interface SnakeCaseProductBody {
   stock_count?: number;
   dpi?: string;
   product_type_id: number;
+  product_category_id?: number | null;
   parent_product_id?: number;
   active?: boolean;
   [key: string]: any;
-} 
+}

@@ -3,7 +3,7 @@ import { supabase } from "./config.ts";
 /**
  * PUT /products?id=<ID>
  * Actualiza un producto existente con todas sus relaciones.
- * 
+ *
  * Payload esperado:
  * {
  *   "name": "Nombre Actualizado",
@@ -11,6 +11,7 @@ import { supabase } from "./config.ts";
  *   "stockCount": 15,
  *   "dpi": "222",
  *   "productTypeId": 1,
+ *   "productCategoryId": 3,
  *   "brand": { "file": {} },
  *   "files": [
  *     {
@@ -32,16 +33,16 @@ import { supabase } from "./config.ts";
  *       "providerId": 3,  // Proveedor existente
  *       "numSeries": "DPI1214-ACTUALIZADO",
  *       "price": {  // Si se incluye price, crea un nuevo precio
- *         "description": "Precio de compra actualizado", 
- *         "cost": "$2,500.00" 
+ *         "description": "Precio de compra actualizado",
+ *         "cost": "$2,500.00"
  *       }
  *     },
  *     {
  *       "providerId": 4,  // Nuevo proveedor
  *       "numSeries": "NUEVO-SERIE",
- *       "price": { 
- *         "description": "Precio de nuevo proveedor", 
- *         "cost": "$1,800.00" 
+ *       "price": {
+ *         "description": "Precio de nuevo proveedor",
+ *         "cost": "$1,800.00"
  *       }
  *     }
  *   ],
@@ -51,8 +52,8 @@ import { supabase } from "./config.ts";
  *     },
  *     {
  *       "price": {  // Nuevo precio
- *         "description": "NUEVO PRECIO", 
- *         "cost": "$4,200.00" 
+ *         "description": "NUEVO PRECIO",
+ *         "cost": "$4,200.00"
  *       }
  *     }
  *   ],
@@ -84,8 +85,8 @@ import { supabase } from "./config.ts";
  *     }
  *   ]
  * }
- * 
- * Nota: 
+ *
+ * Nota:
  * - Los elementos que no se incluyen en los arrays se eliminarán (enfoque de reemplazo completo).
  * - Para archivos y precios, si tienen ID se actualizan, si no tienen ID se crean nuevos.
  * - Para proveedores, se identifican por providerId.
@@ -97,7 +98,7 @@ export async function handlePutProduct(req: Request): Promise<Response> {
     if (!contentType || !contentType.includes("application/json")) {
       return new Response(
         JSON.stringify({ error: "El Content-Type debe ser application/json" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -108,7 +109,7 @@ export async function handlePutProduct(req: Request): Promise<Response> {
     if (isNaN(productId) || productId <= 0) {
       return new Response(
         JSON.stringify({ error: "ID de producto inválido" }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
+        { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
@@ -120,8 +121,10 @@ export async function handlePutProduct(req: Request): Promise<Response> {
         new Set(
           (body.components || [])
             .map((component: any) => component.componentProductId)
-            .filter((componentProductId: any) => componentProductId !== undefined && componentProductId !== null)
-        )
+            .filter((componentProductId: any) =>
+              componentProductId !== undefined && componentProductId !== null
+            ),
+        ),
       );
 
       const mappedBody: any = {
@@ -130,53 +133,56 @@ export async function handlePutProduct(req: Request): Promise<Response> {
         stockCount: body.stockCount,
         dpi: body.dpi,
         productTypeId: body.productTypeId,
+        productCategoryId: body.productCategoryId ?? null,
         files: body.files || [],
         carModels: (body.productCarModels || []).map((pcm: any) => ({
           carModelId: pcm.carModelId,
           initialYear: pcm.initialYear,
-          lastYear: pcm.lastYear
+          lastYear: pcm.lastYear,
         })),
         prices: body.productPrices || [],
-        providers: body.productProviders || []
+        providers: body.productProviders || [],
       };
 
       if ("components" in body) {
-        mappedBody.components = uniqueComponentIds.map(componentProductId => ({
-          componentProductId
-        }));
+        mappedBody.components = uniqueComponentIds.map(
+          (componentProductId) => ({
+            componentProductId,
+          }),
+        );
       }
 
       return mappedBody;
     }
 
     const mappedProductData = mapProductRequestBody(productData);
-    
+
     // Llamar al procedimiento almacenado para actualizar el producto con todas sus relaciones
     const { data, error } = await supabase.rpc(
-      'update_product_with_relations',
-      { 
+      "update_product_with_relations",
+      {
         p_product_id: productId,
-        product_data: mappedProductData 
-      }
+        product_data: mappedProductData,
+      },
     );
-    
+
     if (error) {
       console.error("Error al actualizar el producto:", error);
       return new Response(
         JSON.stringify({ error: error.message }),
-        { status: 500, headers: { "Content-Type": "application/json" } }
+        { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
-    
+
     return new Response(
       JSON.stringify(data),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      { status: 200, headers: { "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("Error al procesar la solicitud:", err);
     return new Response(
       JSON.stringify({ error: "Error al procesar la solicitud" }),
-      { status: 400, headers: { "Content-Type": "application/json" } }
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
-} 
+}
